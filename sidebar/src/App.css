@@ -1,0 +1,399 @@
+/* Общие стили приложения */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #001616;
+  color: #aaffff;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Скроллбары */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #002222;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #004444;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #006666;
+}
+
+/* Загрузка и ошибки */
+.loading, .error, .not-found {
+  padding: 20px;
+  text-align: center;
+}
+
+.error {
+  color: #fc7735;
+}
+
+/* Формы */
+.new-item-form, .edit-form {
+  background: #002222;
+  border: 1px solid #004444;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.new-item-form input,
+.new-item-form select,
+.new-item-form textarea,
+.edit-form input,
+.edit-form select,
+.edit-form textarea {
+  width: 100%;
+  background: #001616;
+  border: 1px solid #004444;
+  color: #aaffff;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.new-item-form input:focus,
+.new-item-form select:focus,
+.new-item-form textarea:focus,
+.edit-form input:focus,
+.edit-form select:focus,
+.edit-form textarea:focus {
+  outline: none;
+  border-color: #008888;
+}
+
+.new-item-form button,
+.edit-form button {
+  background: #004444;
+  color: #aaffff;
+  border: 1px solid #006666;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.new-item-form button:hover,
+.edit-form button:hover {
+  background: #006666;
+}
+
+/* Кнопки действий */
+.panel-actions {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.action-btn {
+  background: #002222;
+  color: #aaffff;
+  border: 1px solid #004444;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+}
+
+.action-btn:hover {
+  background: #004444;
+}
+
+/* Кнопка удаления */
+.delete-btn {
+  background: #fa531617;
+  border: 1px solid #ff733b;
+  color: #ff733b;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+  background: #440000;
+}
+
+/* Поиск */
+.panel-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #004444;
+}
+
+.panel-search input {
+  flex: 1;
+  background: #001616;
+  border: 1px solid #004444;
+  color: #aaffff;
+  padding: 6px;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.panel-search input:focus {
+  outline: none;
+  border-color: #008888;
+}
+
+.panel-search svg {
+  color: #008888;
+}
+
+/* Заголовки форм */
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #004444;
+}
+
+.form-header h3 {
+  font-size: 16px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-btn, .edit-btn {
+  background: #004444;
+  color: #aaffff;
+  border: 1px solid #006666;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.save-btn:hover, .edit-btn:hover {
+  background: #006666;
+}
+
+.cancel-btn, .close-btn {
+  background: #fa531617;
+  color: #ffaaaa;
+  border: 1px solid #440000;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.cancel-btn:hover, .close-btn:hover {
+  background: #440000;
+}
+
+/* === Задачи: новые стили === */
+
+/* Строка заголовка с приоритетом */
+.task-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.priority-badge {
+  color: #001616;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Секция подзадач */
+.task-items-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #004444;
+}
+
+.task-items-section h4 {
+  margin-bottom: 10px;
+  color: #00aaaa;
+}
+
+.task-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #002222;
+  border-radius: 4px;
+  border: 1px solid #004444;
+}
+
+.task-item.completed {
+  opacity: 0.6;
+}
+
+.task-item.completed .task-item-name {
+  text-decoration: line-through;
+}
+
+.task-item input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.task-item-name {
+  flex: 1;
+  font-size: 13px;
+}
+
+.task-item-date {
+  font-size: 11px;
+  color: #008888;
+}
+
+.delete-item-btn {
+  background: transparent;
+  border: none;
+  color: #ff733b;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+.delete-item-btn:hover {
+  opacity: 1;
+  background: #330000;
+  border-radius: 4px;
+}
+
+/* Форма новой подзадачи */
+.new-task-item-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.new-task-item-form input[type="text"] {
+  flex: 1;
+  background: #001616;
+  border: 1px solid #004444;
+  color: #aaffff;
+  padding: 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.new-task-item-form input[type="date"] {
+  background: #001616;
+  border: 1px solid #004444;
+  color: #aaffff;
+  padding: 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.new-task-item-form button {
+  background: #004444;
+  color: #aaffff;
+  border: 1px solid #006666;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.new-task-item-form button:hover {
+  background: #006666;
+}
+
+/* Статус задачи в Sidebar */
+.task-status-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.task-item-wrapper {
+  position: relative;
+  padding-left: 8px;
+}
+
+.task-item-wrapper.status-completed {
+  border-left: 3px solid #44aa44;
+}
+
+.task-item-wrapper.status-not_completed {
+  border-left: 3px solid #ff4444;
+}
+
+.task-item-wrapper.status-active {
+  border-left: 3px solid #008888;
+}
+
+/* Время создания и название задачи */
+.task-name-with-time {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+}
+
+.task-created-time {
+  font-size: 9px;
+  color: #006666;
+}

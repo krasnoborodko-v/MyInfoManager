@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(start *)",
+      "Bash(timeout *)",
+      "Bash(curl *)",
+      "Bash(taskkill *)",
+      "Bash(npm install)",
+      "Bash(npm run *)",
+      "Bash(findstr *)"
+    ]
+  },
+  "$version": 3
+}
