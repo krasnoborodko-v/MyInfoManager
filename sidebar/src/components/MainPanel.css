@@ -784,7 +784,7 @@
 
 .subtasks-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   cursor: pointer;
   padding: 8px 0;
@@ -815,9 +815,6 @@
 }
 
 .subtask-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 8px 0;
   border-bottom: 1px solid #002222;
 }
@@ -831,6 +828,21 @@
   color: #668888;
 }
 
+.subtask-view {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.subtask-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
 .subtask-item input[type="checkbox"] {
   accent-color: #008888;
   cursor: pointer;
@@ -840,14 +852,39 @@
   flex: 1;
   color: #ccffff;
   font-size: 13px;
+  font-weight: 500;
+}
+
+.subtask-description {
+  color: #88bbbb;
+  font-size: 12px;
+  padding-left: 12px;
+  margin-left: 24px;
+  line-height: 1.4;
+  border-left: 2px solid #004444;
+}
+
+.subtask-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .subtask-due {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
-  color: #668888;
+  color: #669999;
 }
 
-.delete-subtask-btn {
+.subtask-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.delete-subtask-btn,
+.edit-subtask-btn {
   background: transparent;
   border: none;
   color: #668888;
@@ -860,28 +897,209 @@
   transition: all 0.2s;
 }
 
+.edit-subtask-btn:hover {
+  background: #003333;
+  color: #00aaff;
+}
+
 .delete-subtask-btn:hover {
   background: #003333;
   color: #ff4444;
 }
 
-.add-subtask-form {
+/* Форма редактирования подзадачи */
+.subtask-edit-form {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  flex-wrap: wrap;
 }
 
-.add-subtask-form input {
+.subtask-edit-form input[type="text"] {
   flex: 1;
+  min-width: 150px;
   background: #002222;
   border: 1px solid #004444;
   border-radius: 4px;
   padding: 8px 12px;
   color: #aaffff;
   font-size: 13px;
+  font-family: inherit;
 }
 
-.add-subtask-form input:focus {
+.subtask-edit-form input[type="datetime-local"] {
+  background: #002222;
+  border: 1px solid #004444;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #aaffff;
+  font-size: 13px;
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.subtask-edit-form textarea {
+  width: 100%;
+  background: #002222;
+  border: 1px solid #004444;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #aaffff;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 50px;
+}
+
+.subtask-edit-form input:focus,
+.subtask-edit-form textarea:focus {
+  outline: none;
+  border-color: #008888;
+}
+
+.subtask-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.subtask-actions button {
+  background: #004444;
+  border: none;
+  color: #aaffff;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.subtask-actions button:hover {
+  background: #006666;
+  color: #ffffff;
+}
+
+/* Редактирование телефонов, email, соцсетей */
+.phones-edit, .emails-edit, .socials-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.phone-edit-row, .email-edit-row, .social-edit-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.phone-edit-row select, .email-edit-row select, .social-edit-row select {
+  width: 130px;
+  background: #001a1a;
+  border: 1px solid #004444;
+  border-radius: 4px;
+  padding: 8px;
+  color: #aaffff;
+  font-size: 13px;
+}
+
+.phone-edit-row input, .email-edit-row input, .social-edit-row input {
+  flex: 1;
+  background: #001a1a;
+  border: 1px solid #004444;
+  border-radius: 4px;
+  padding: 8px;
+  color: #aaffff;
+  font-size: 13px;
+}
+
+.delete-field-btn {
+  background: transparent;
+  border: none;
+  color: #668888;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.delete-field-btn:hover {
+  background: #003333;
+  color: #ff4444;
+}
+
+.add-btn {
+  background: #004444;
+  border: none;
+  color: #aaffff;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.add-btn:hover {
+  background: #006666;
+}
+
+/* Форма добавления подзадачи */
+.add-subtask-form {
+  display: flex;
+  border: 1px solid #004444;
+  border-radius: 4px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.add-subtask-form input[type="text"] {
+  flex: 1;
+  min-width: 150px;
+  background: #002222;
+  border: 1px solid #002222;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #aaffff;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.add-subtask-form input[type="datetime-local"] {
+  background: #002222;
+  border: 1px solid #002222;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #aaffff;
+  font-size: 13px;
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.add-subtask-form textarea {
+  flex: 2;
+  min-width: 200px;
+  background: #002222;
+  border: 1px solid #002222;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #aaffff;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 50px;
+}
+
+.add-subtask-form input:focus,
+.add-subtask-form textarea:focus {
   outline: none;
   border-color: #008888;
 }
@@ -897,6 +1115,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  margin-left: auto;
 }
 
 .add-subtask-btn:hover {

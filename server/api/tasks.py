@@ -154,15 +154,16 @@ def get_subtasks(task_id: int):
 def create_subtask(task_id: int, subtask: SubtaskCreate):
     """Создать новую подзадачу."""
     repo = get_repo()
-    
+
     # Проверяем существование задачи
     task = repo.get_by_id(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Задача не найдена")
-    
+
     model = SubtaskModel(
         task_id=task_id,
         title=subtask.title,
+        description=subtask.description,
         due_date=subtask.due_date,
         is_completed=subtask.is_completed,
     )
@@ -174,22 +175,23 @@ def create_subtask(task_id: int, subtask: SubtaskCreate):
 def update_subtask(task_id: int, subtask_id: int, subtask: SubtaskUpdate):
     """Обновить существующую подзадачу."""
     repo = get_repo()
-    
+
     # Проверяем существование задачи
     task = repo.get_by_id(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Задача не найдена")
-    
+
     # Получаем подзадачу
     existing = repo.get_subtask_by_id(subtask_id)
     if existing is None:
         raise HTTPException(status_code=404, detail="Подзадача не найдена")
-    
+
     # Обновляем только указанные поля
     model = SubtaskModel(
         id=subtask_id,
         task_id=task_id,
         title=subtask.title if subtask.title is not None else existing.title,
+        description=subtask.description if subtask.description is not None else existing.description,
         due_date=subtask.due_date if subtask.due_date is not None else existing.due_date,
         is_completed=subtask.is_completed if subtask.is_completed is not None else existing.is_completed,
     )

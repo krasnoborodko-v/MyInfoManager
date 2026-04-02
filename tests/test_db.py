@@ -8,7 +8,7 @@ from pathlib import Path
 from datetime import datetime
 
 from db.database import init_database, create_tables
-from db.models import Resource, Note, Task, KategoryResource, KategoryNote, KategoryTask
+from db.models import Resource, Note, Task, KategoryResource, KategoryNote, KategoryTask, Contact, ContactGroup
 from db.repositories.resource_repo import ResourceRepository
 from db.repositories.note_repo import NoteRepository
 from db.repositories.task_repo import TaskRepository
@@ -19,11 +19,15 @@ def db_connection():
     """Создать временную базу данных для тестов."""
     with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
         db_path = Path(f.name)
-    
+
     conn = init_database(db_path)
     yield conn
     conn.close()
-    db_path.unlink()  # Удалить временный файл БД
+    # Игнорируем ошибки удаления на Windows
+    try:
+        db_path.unlink()
+    except (PermissionError, OSError):
+        pass
 
 
 class TestDatabaseInit:
@@ -268,6 +272,102 @@ class TestTaskRepository:
         """Тест удаления задачи."""
         category = repo.create_category("Работа")
         task = repo.create(Task(name="ToDelete", kategory_id=category.id))
-        
+
         assert repo.delete(task.id) is True
         assert repo.get_by_id(task.id) is None
+
+
+class TestContactRepository:
+    """Тесты репозитория контактов."""
+
+    @pytest.fixture
+    def repo(self, db_connection):
+        from db.repositories.contact_repo import ContactRepository
+        return ContactRepository(db_connection)
+
+    def test_create_group(self, repo):
+        """Тест создания группы контактов."""
+        group = repo.create_group("ТестСемья123", "#FF6B6B")
+        assert group.id is not None
+        assert group.name == "ТестСемья123"
+        assert group.color == "#FF6B6B"
+
+    def test_get_groups(self, repo):
+        """Тест получения списка групп."""
+        repo.create_group("ТестГруппаА123", "#FF0000")
+        repo.create_group("ТестГруппаБ123", "#00FF00")
+
+        groups = repo.get_groups()
+        assert len(groups) >= 2
+
+    def test_create_contact(self, repo):
+        """Тест создания контакта."""
+        group = repo.create_group("ТестКоллеги123")
+        contact = Contact(
+            first_name="Иван",
+            last_name="Иванов",
+            middle_name="Иванович",
+            group_id=group.id,
+            company="ООО Ромашка",
+            position="Менеджер",
+            is_favorite=False
+        )
+        created = repo.create(contact)
+
+        assert created.id is not None
+        assert created.first_name == "Иван"
+        assert created.last_name == "Иванов"
+        assert created.group_name == "ТестКоллеги123"
+
+    def test_get_all_contacts(self, repo):
+        """Тест получения всех контактов."""
+        repo.create(Contact(first_name="Петр", last_name="Петров"))
+        repo.create(Contact(first_name="Анна", last_name="Анна"))
+
+        contacts = repo.get_all()
+        assert len(contacts) == 2
+
+    def test_search_contacts(self, repo):
+        """Тест поиска контактов."""
+        repo.create(Contact(first_name="Алексей", last_name="Смирнов"))
+        repo.create(Contact(first_name="Дмитрий", last_name="Кузнецов"))
+
+        results = repo.search("Смирнов")
+        assert len(results) == 1
+        assert results[0].last_name == "Смирнов"
+
+    def test_update_contact(self, repo):
+        """Тест обновления контакта."""
+        contact = repo.create(Contact(first_name="Тест", last_name="Тестов"))
+
+        contact.first_name = "Обновлённый"
+        contact.company = "Новая компания"
+        updated = repo.update(contact)
+
+        assert updated is not None
+        assert updated.first_name == "Обновлённый"
+        assert updated.company == "Новая компания"
+
+    def test_delete_contact(self, repo):
+        """Тест удаления контакта."""
+        contact = repo.create(Contact(first_name="НаУдаление", last_name="Удалов"))
+
+        assert repo.delete(contact.id) is True
+        assert repo.get_by_id(contact.id) is None
+
+    def test_toggle_favorite(self, repo):
+        """Тест переключения избранного."""
+        contact = repo.create(Contact(first_name="Избранный", last_name="Избранов", is_favorite=False))
+
+        toggled = repo.toggle_favorite(contact.id)
+        assert toggled.is_favorite == True
+
+        toggled = repo.toggle_favorite(contact.id)
+        assert toggled.is_favorite == False
+
+    def test_delete_group(self, repo):
+        """Тест удаления группы."""
+        group = repo.create_group("ТестГруппа")
+
+        assert repo.delete_group(group.id) is True
+        assert repo.get_group_by_id(group.id) is None

@@ -319,6 +319,76 @@ export const tasksApi = {
   }),
 };
 
+// === Контакты ===
+
+export const contactsApi = {
+  getAll: (groupId = null, favorite = false, search = null) => {
+    const params = new URLSearchParams();
+    if (groupId) params.append('group_id', groupId);
+    if (favorite) params.append('favorite', 'true');
+    if (search) params.append('search', search);
+    return fetchApi(`/api/contacts?${params.toString()}`);
+  },
+
+  search: (query) => fetchApi(`/api/contacts/search?q=${encodeURIComponent(query)}`),
+
+  getById: (id) => fetchApi(`/api/contacts/${id}`),
+
+  create: (data) => fetchApi('/api/contacts', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  update: (id, data) => fetchApi(`/api/contacts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
+  delete: (id) => fetchApi(`/api/contacts/${id}`, {
+    method: 'DELETE',
+  }),
+
+  toggleFavorite: (id) => fetchApi(`/api/contacts/${id}/toggle-favorite`, {
+    method: 'POST',
+  }),
+
+  // Группы
+  getGroups: () => fetchApi('/api/contacts/groups'),
+
+  createGroup: (name, color) => fetchApi(`/api/contacts/groups?name=${encodeURIComponent(name)}&color=${encodeURIComponent(color)}`, {
+    method: 'POST',
+  }),
+
+  updateGroup: (id, data) => fetchApi(`/api/contacts/groups/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
+  deleteGroup: (id) => fetchApi(`/api/contacts/groups/${id}`, {
+    method: 'DELETE',
+  }),
+
+  // Фото
+  uploadPhoto: async (contactId, file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    const response = await fetch(`${API_BASE_URL}/api/contacts/${contactId}/photo`, {
+      method: 'POST',  // Используем POST вместо PUT
+      body: formData,
+      // Не устанавливаем Content-Type - браузер сам установит multipart/form-data
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || 'Ошибка загрузки фото');
+    }
+    return response.json();
+  },
+
+  deletePhoto: (contactId) => fetchApi(`/api/contacts/${contactId}/photo`, {
+    method: 'DELETE',
+  }),
+};
+
 // === Проверка доступности сервера ===
 
 export const checkServerHealth = async () => {
@@ -334,5 +404,6 @@ export default {
   resources: resourcesApi,
   notes: notesApi,
   tasks: tasksApi,
+  contacts: contactsApi,
   checkServerHealth,
 };

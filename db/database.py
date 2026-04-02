@@ -126,6 +126,7 @@ def create_tables(conn: sqlite3.Connection) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             task_id INTEGER NOT NULL,
             title TEXT NOT NULL,
+            description TEXT,
             due_date DATETIME,
             is_completed INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -138,6 +139,16 @@ def create_tables(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_subtask_task_id
         ON subtask(task_id)
     """)
+
+    # Проверяем, существует ли таблица subtask и добавляем колонку description если нужно
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='subtask'")
+    subtask_exists = cursor.fetchone() is not None
+    
+    if subtask_exists:
+        cursor.execute("PRAGMA table_info(subtask)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if 'description' not in columns:
+            cursor.execute("ALTER TABLE subtask ADD COLUMN description TEXT")
 
     # Таблица вложений (изображения, аудио для заметок)
     # Сначала проверяем, существует ли таблица
@@ -243,6 +254,74 @@ def create_tables(conn: sqlite3.Connection) -> None:
     cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_note_tag_tag ON note_tag(tag_id)
     """)
+
+    # === Таблицы для контактов ===
+
+    # Таблица групп контактов
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS contact_group (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            color TEXT DEFAULT '#008888',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Таблица контактов
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS contact (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            first_name TEXT NOT NULL DEFAULT '',
+            last_name TEXT NOT NULL DEFAULT '',
+            middle_name TEXT DEFAULT '',
+            group_id INTEGER,
+            phones TEXT,
+            emails TEXT,
+            address TEXT,
+            company TEXT,
+            position TEXT,
+            birth_date DATETIME,
+            photo BLOB,
+            photo_type TEXT,
+            socials TEXT,
+            website TEXT,
+            is_favorite INTEGER DEFAULT 0,
+            notes TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES contact_group(id) ON DELETE SET NULL
+        )
+    """)
+
+    # Индексы для контактов
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_contact_group ON contact(group_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_contact_favorite ON contact(is_favorite)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_contact_name ON contact(last_name, first_name)
+    """)
+
+    # Добавляем начальные группы контактов, если таблица пуста
+    cursor.execute("SELECT COUNT(*) FROM contact_group")
+    if cursor.fetchone()[0] == 0:
+        default_groups = [
+            ('Семья', '#FF6B6B'),
+            ('Родственники', '#FFA07A'),
+            ('Друзья', '#4ECDC4'),
+            ('Коллеги', '#45B7D1'),
+            ('Знакомые', '#96CEB4'),
+            ('Соседи', '#FFEAA7'),
+            ('Клиенты', '#DDA0DD'),
+            ('Партнёры', '#98D8C8'),
+            ('Другое', '#888888'),
+        ]
+        cursor.executemany(
+            "INSERT INTO contact_group (name, color) VALUES (?, ?)",
+            default_groups
+        )
 
     conn.commit()
 

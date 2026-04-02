@@ -222,7 +222,7 @@ class TaskRepository:
         """
         cursor = self.conn.cursor()
         cursor.execute("""
-            SELECT id, task_id, title, due_date, is_completed, created_at
+            SELECT id, task_id, title, description, due_date, is_completed, created_at
             FROM subtask
             WHERE task_id = ?
             ORDER BY created_at
@@ -242,7 +242,7 @@ class TaskRepository:
         """
         cursor = self.conn.cursor()
         cursor.execute("""
-            SELECT id, task_id, title, due_date, is_completed, created_at
+            SELECT id, task_id, title, description, due_date, is_completed, created_at
             FROM subtask
             WHERE id = ?
         """, (subtask_id,))
@@ -262,9 +262,9 @@ class TaskRepository:
         """
         cursor = self.conn.cursor()
         cursor.execute("""
-            INSERT INTO subtask (task_id, title, due_date, is_completed)
-            VALUES (?, ?, ?, ?)
-        """, (subtask.task_id, subtask.title, subtask.due_date, 
+            INSERT INTO subtask (task_id, title, description, due_date, is_completed)
+            VALUES (?, ?, ?, ?, ?)
+        """, (subtask.task_id, subtask.title, subtask.description, subtask.due_date,
               1 if subtask.is_completed else 0))
 
         self.conn.commit()
@@ -284,9 +284,9 @@ class TaskRepository:
         cursor = self.conn.cursor()
         cursor.execute("""
             UPDATE subtask
-            SET title = ?, due_date = ?, is_completed = ?
+            SET title = ?, description = ?, due_date = ?, is_completed = ?
             WHERE id = ?
-        """, (subtask.title, subtask.due_date, 
+        """, (subtask.title, subtask.description, subtask.due_date,
               1 if subtask.is_completed else 0, subtask.id))
 
         self.conn.commit()

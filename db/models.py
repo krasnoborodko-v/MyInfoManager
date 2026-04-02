@@ -208,6 +208,7 @@ class Subtask:
     id: Optional[int] = None
     task_id: int = 0
     title: str = ""
+    description: Optional[str] = None
     due_date: Optional[datetime] = None
     is_completed: bool = False
     created_at: Optional[datetime] = None
@@ -217,6 +218,7 @@ class Subtask:
             "id": self.id,
             "task_id": self.task_id,
             "title": self.title,
+            "description": self.description,
             "due_date": self.due_date.isoformat() if self.due_date else None,
             "is_completed": self.is_completed,
             "created_at": self.created_at.isoformat() if self.created_at else None,
@@ -236,6 +238,7 @@ class Subtask:
             id=row["id"],
             task_id=row["task_id"],
             title=row["title"],
+            description=row["description"] if row["description"] else None,
             due_date=due_date,
             is_completed=bool(row["is_completed"] if row["is_completed"] else 0),
             created_at=created_at
@@ -362,10 +365,131 @@ class Tag:
         created_at = row["created_at"]
         if isinstance(created_at, str):
             created_at = datetime.fromisoformat(created_at)
-        
+
         return cls(
             id=row["id"],
             name=row["name"],
             color=row["color"],
             created_at=created_at
+        )
+
+
+# === Контакты ===
+
+@dataclass
+class ContactGroup:
+    """Группа контактов (семья, коллеги и т.д.)."""
+    id: Optional[int] = None
+    name: str = ""
+    color: str = "#008888"
+    created_at: Optional[datetime] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "color": self.color,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+    @classmethod
+    def from_row(cls, row) -> "ContactGroup":
+        created_at = row["created_at"]
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at)
+
+        return cls(
+            id=row["id"],
+            name=row["name"],
+            color=row["color"] if row["color"] else "#008888",
+            created_at=created_at
+        )
+
+
+@dataclass
+class Contact:
+    """Контакт (персона)."""
+    id: Optional[int] = None
+    first_name: str = ""  # Имя
+    last_name: str = ""   # Фамилия
+    middle_name: str = ""  # Отчество
+    group_id: Optional[int] = None
+    phones: Optional[str] = None  # JSON массив телефонов: [{"type": "mobile", "value": "..."}]
+    emails: Optional[str] = None  # JSON массив email
+    address: Optional[str] = None
+    company: Optional[str] = None  # Место работы
+    position: Optional[str] = None  # Должность
+    birth_date: Optional[datetime] = None
+    photo: Optional[bytes] = None  # Фото (BLOB)
+    photo_type: Optional[str] = None  # MIME тип фото
+    socials: Optional[str] = None  # JSON соцсетей: [{"type": "telegram", "value": "..."}]
+    website: Optional[str] = None
+    is_favorite: bool = False
+    notes: Optional[str] = None  # Комментарий
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    group_name: Optional[str] = None  # Для JOIN-запросов
+
+    def to_dict(self, include_photo: bool = False) -> dict:
+        import base64
+        result = {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "middle_name": self.middle_name,
+            "group_id": self.group_id,
+            "phones": self.phones,
+            "emails": self.emails,
+            "address": self.address,
+            "company": self.company,
+            "position": self.position,
+            "birth_date": self.birth_date.isoformat() if self.birth_date else None,
+            "socials": self.socials,
+            "website": self.website,
+            "is_favorite": self.is_favorite,
+            "notes": self.notes,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "group_name": self.group_name,
+        }
+        if include_photo and self.photo:
+            result["photo"] = base64.b64encode(self.photo).decode('utf-8')
+            result["photo_type"] = self.photo_type
+        return result
+
+    @classmethod
+    def from_row(cls, row) -> "Contact":
+        birth_date = row["birth_date"]
+        if isinstance(birth_date, str):
+            birth_date = datetime.fromisoformat(birth_date)
+
+        created_at = row["created_at"]
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at)
+
+        updated_at = row["updated_at"]
+        if isinstance(updated_at, str):
+            updated_at = datetime.fromisoformat(updated_at)
+
+        return cls(
+            id=row["id"],
+            first_name=row["first_name"],
+            last_name=row["last_name"],
+            middle_name=row["middle_name"] if row["middle_name"] else "",
+            group_id=row["group_id"],
+            phones=row["phones"],
+            emails=row["emails"],
+            address=row["address"],
+            company=row["company"],
+            position=row["position"],
+            birth_date=birth_date,
+            photo=row["photo"],
+            photo_type=row["photo_type"],
+            socials=row["socials"],
+            website=row["website"],
+            is_favorite=bool(row["is_favorite"] if row["is_favorite"] else 0),
+            notes=row["notes"],
+            created_at=created_at,
+            updated_at=updated_at,
+            group_name=row["group_name"] if row["group_name"] else None
         )

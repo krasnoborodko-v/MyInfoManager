@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from db.database import init_database
-from server.api import resources, notes, tasks, categories, attachments, settings, folders_tags
+from server.api import resources, notes, tasks, categories, attachments, settings, folders_tags, contacts
 
 
 # Инициализация базы данных при старте
@@ -25,7 +25,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],  # Добавляем для отладки
+    max_age=3600,
 )
+
+# Ограничение размера загружаемых файлов (10 MB)
+app.config = {"max_upload_size": 10 * 1024 * 1024}
 
 # Подключение роутеров
 app.include_router(resources.router)
@@ -35,6 +40,7 @@ app.include_router(categories.router)
 app.include_router(attachments.router)
 app.include_router(settings.router)
 app.include_router(folders_tags.router)
+app.include_router(contacts.router)
 
 
 @app.get("/")
@@ -47,6 +53,7 @@ def root():
             "resources": "/api/resources",
             "notes": "/api/notes",
             "tasks": "/api/tasks",
+            "contacts": "/api/contacts",
             "categories": "/api/categories",
         }
     }

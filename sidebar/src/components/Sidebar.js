@@ -6,19 +6,21 @@ import {
   Calendar,
   Clock,
   Settings,
+  Users,
   ChevronRight,
   ChevronDown,
   Plus,
   Trash2,
   Search
 } from 'lucide-react';
-import { useResources, useNotes, useTasks, useSettings, useFoldersTags } from '../hooks';
+import { useResources, useNotes, useTasks, useContacts, useSettings, useFoldersTags } from '../hooks';
 import './Sidebar.css';
 
 const menuItems = [
   { id: 'resources', icon: FolderTree, label: 'Ресурсы' },
   { id: 'notes', icon: FileText, label: 'Заметки' },
   { id: 'tasks', icon: CheckSquare, label: 'Задачи' },
+  { id: 'contacts', icon: Users, label: 'Контакты' },
   { id: 'calendar', icon: Calendar, label: 'Календарь' },
   { id: 'planner', icon: Clock, label: 'Планировщик' },
   { id: 'settings', icon: Settings, label: 'Настройки' },
@@ -71,7 +73,7 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect }) {
           </div>
           
           {/* Поиск для активных разделов */}
-          {(expandedPanel === 'resources' || expandedPanel === 'notes' || expandedPanel === 'tasks') && (
+          {(expandedPanel === 'resources' || expandedPanel === 'notes' || expandedPanel === 'tasks' || expandedPanel === 'contacts') && (
             <div className="panel-search">
               <Search size={14} />
               <input
@@ -92,6 +94,9 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect }) {
             )}
             {expandedPanel === 'tasks' && (
               <TasksPanel searchQuery={searchQuery} onItemSelect={onItemSelect} />
+            )}
+            {expandedPanel === 'contacts' && (
+              <ContactsPanel searchQuery={searchQuery} onItemSelect={onItemSelect} />
             )}
             {expandedPanel === 'calendar' && <CalendarPanel />}
             {expandedPanel === 'planner' && <PlannerPanel />}
@@ -979,6 +984,80 @@ function TasksPanel({ searchQuery, onItemSelect }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ContactsPanel({ searchQuery, onItemSelect }) {
+  const { contacts, groups, loading } = useContacts();
+
+  const filteredContacts = contacts.filter(contact => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    const fullName = `${contact.last_name} ${contact.first_name} ${contact.middle_name}`.toLowerCase();
+    return fullName.includes(query);
+  });
+
+  const contactsByGroup = filteredContacts.reduce((acc, contact) => {
+    const groupId = contact.group_id || 'no-group';
+    if (!acc[groupId]) acc[groupId] = [];
+    acc[groupId].push(contact);
+    return acc;
+  }, {});
+
+  const getGroupName = (groupId) => {
+    const group = groups.find(g => g.id == groupId);
+    return group ? group.name : 'Без группы';
+  };
+
+  const getGroupColor = (groupId) => {
+    const group = groups.find(g => g.id == groupId);
+    return group ? group.color : '#888888';
+  };
+
+  if (loading) {
+    return <div className="loading">Загрузка...</div>;
+  }
+
+  return (
+    <div className="contacts-sidebar-list">
+      {Object.entries(contactsByGroup).map(([groupId, groupContacts]) => (
+        <div key={groupId} className="contact-group">
+          <div className="contact-group-title">
+            <span
+              className="group-color-dot"
+              style={{ backgroundColor: getGroupColor(groupId) }}
+            />
+            <span>{getGroupName(groupId)}</span>
+            <span className="group-count">{groupContacts.length}</span>
+          </div>
+          <div className="contact-items">
+            {groupContacts.map(contact => (
+              <div
+                key={contact.id}
+                className="contact-item"
+                onClick={() => onItemSelect && onItemSelect({ type: 'contact', id: contact.id })}
+              >
+                <div className="contact-avatar">
+                  {contact.photo ? (
+                    <img src={`data:image/jpeg;base64,${contact.photo}`} alt={contact.first_name} />
+                  ) : (
+                    <span>{contact.first_name[0]}{contact.last_name[0]}</span>
+                  )}
+                </div>
+                <div className="contact-info">
+                  <div className="contact-name-text">
+                    {contact.last_name} {contact.first_name}
+                  </div>
+                  {contact.company && (
+                    <div className="contact-company-text">{contact.company}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

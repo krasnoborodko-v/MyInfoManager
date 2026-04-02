@@ -158,6 +158,7 @@ class SubtaskBase(BaseModel):
     """Базовая схема подзадачи."""
     task_id: int
     title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
     due_date: Optional[datetime] = None
     is_completed: bool = False
 
@@ -165,6 +166,7 @@ class SubtaskBase(BaseModel):
 class SubtaskCreate(BaseModel):
     """Схема для создания подзадачи."""
     title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
     due_date: Optional[datetime] = None
     is_completed: bool = False
 
@@ -172,6 +174,7 @@ class SubtaskCreate(BaseModel):
 class SubtaskUpdate(BaseModel):
     """Схема для обновления подзадачи."""
     title: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = None
     due_date: Optional[datetime] = None
     is_completed: Optional[bool] = None
 
@@ -182,3 +185,98 @@ class SubtaskResponse(SubtaskBase):
     created_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+# === Контакты ===
+
+class ContactGroupBase(BaseModel):
+    """Базовая схема группы контактов."""
+    name: str = Field(..., min_length=1, max_length=100)
+    color: str = "#008888"
+
+
+class ContactGroupCreate(BaseModel):
+    """Схема для создания группы контактов."""
+    name: str = Field(..., min_length=1, max_length=100)
+    color: str = "#008888"
+
+
+class ContactGroupUpdate(BaseModel):
+    """Схема для обновления группы контактов."""
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    color: Optional[str] = None
+
+
+class ContactGroupResponse(ContactGroupBase):
+    """Схема ответа группы контактов."""
+    id: int
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+class ContactBase(BaseModel):
+    """Базовая схема контакта."""
+    first_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(..., min_length=1, max_length=100)
+    middle_name: Optional[str] = None
+    group_id: Optional[int] = None
+    phones: Optional[str] = None  # JSON
+    emails: Optional[str] = None  # JSON
+    address: Optional[str] = None
+    company: Optional[str] = None
+    position: Optional[str] = None
+    birth_date: Optional[datetime] = None
+    socials: Optional[str] = None  # JSON
+    website: Optional[str] = None
+    is_favorite: bool = False
+    notes: Optional[str] = None
+
+
+class ContactCreate(BaseModel):
+    """Схема для создания контакта."""
+    first_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(..., min_length=1, max_length=100)
+    middle_name: Optional[str] = None
+    group_id: Optional[int] = None
+    phones: Optional[str] = None
+    emails: Optional[str] = None
+    address: Optional[str] = None
+    company: Optional[str] = None
+    position: Optional[str] = None
+    birth_date: Optional[datetime] = None
+    socials: Optional[str] = None
+    website: Optional[str] = None
+    is_favorite: bool = False
+    notes: Optional[str] = None
+
+
+class ContactUpdate(BaseModel):
+    """Схема для обновления контакта."""
+    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    middle_name: Optional[str] = None
+    group_id: Optional[int] = None
+    phones: Optional[str] = None
+    emails: Optional[str] = None
+    address: Optional[str] = None
+    company: Optional[str] = None
+    position: Optional[str] = None
+    birth_date: Optional[datetime] = None
+    socials: Optional[str] = None
+    website: Optional[str] = None
+    is_favorite: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+class ContactResponse(ContactBase):
+    """Схема ответа контакта."""
+    id: int
+    photo: Optional[str] = None  # Base64 encoded
+    photo_type: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    group_name: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+

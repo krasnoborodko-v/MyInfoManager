@@ -8,7 +8,8 @@
       "Bash(taskkill *)",
       "Bash(npm install)",
       "Bash(npm run *)",
-      "Bash(findstr *)"
+      "Bash(findstr *)",
+      "Bash(pytest *)"
     ]
   },
   "$version": 3

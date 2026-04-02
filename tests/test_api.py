@@ -259,6 +259,147 @@ class TestTaskAPI:
         assert len(data) == 1
 
 
+class TestContactAPI:
+    """Тесты API контактов."""
+
+    def test_create_group(self, client):
+        """Тест создания группы контактов."""
+        response = client.post("/api/contacts/groups", json={"name": "ТестГруппа123", "color": "#FF6B6B"})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "ТестГруппа123"
+        assert data["color"] == "#FF6B6B"
+        assert "id" in data
+
+    def test_get_groups(self, client):
+        """Тест получения списка групп."""
+        client.post("/api/contacts/groups", json={"name": "ТестГруппаА", "color": "#FF0000"})
+        client.post("/api/contacts/groups", json={"name": "ТестГруппаБ", "color": "#00FF00"})
+
+        response = client.get("/api/contacts/groups")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) >= 2
+
+    def test_create_contact(self, client):
+        """Тест создания контакта."""
+        # Создаём группу с уникальным именем
+        group_response = client.post("/api/contacts/groups", json={"name": "ТестКоллеги123", "color": "#008888"})
+        group_id = group_response.json()["id"]
+
+        response = client.post("/api/contacts", json={
+            "first_name": "Иван",
+            "last_name": "Иванов",
+            "middle_name": "Иванович",
+            "group_id": group_id,
+            "company": "ООО Ромашка",
+            "position": "Менеджер",
+            "is_favorite": False
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["first_name"] == "Иван"
+        assert data["last_name"] == "Иванов"
+        assert data["group_name"] == "ТестКоллеги123"
+        assert "id" in data
+
+    def test_get_contacts(self, client):
+        """Тест получения списка контактов."""
+        client.post("/api/contacts", json={
+            "first_name": "Петр",
+            "last_name": "Петров",
+            "middle_name": "Петрович"
+        })
+        client.post("/api/contacts", json={
+            "first_name": "Анна",
+            "last_name": "Анна",
+            "middle_name": "Анновна"
+        })
+
+        response = client.get("/api/contacts")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) >= 2
+
+    def test_search_contacts(self, client):
+        """Тест поиска контактов."""
+        client.post("/api/contacts", json={
+            "first_name": "Алексей",
+            "last_name": "Смирнов",
+            "middle_name": "Алексеевич"
+        })
+        client.post("/api/contacts", json={
+            "first_name": "Дмитрий",
+            "last_name": "Кузнецов",
+            "middle_name": "Дмитриевич"
+        })
+
+        response = client.get("/api/contacts/search?q=Смирнов")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["last_name"] == "Смирнов"
+
+    def test_update_contact(self, client):
+        """Тест обновления контакта."""
+        # Создаём контакт
+        create_response = client.post("/api/contacts", json={
+            "first_name": "Тест",
+            "last_name": "Тестов",
+            "middle_name": "Тестович"
+        })
+        contact_id = create_response.json()["id"]
+
+        # Обновляем
+        response = client.put(f"/api/contacts/{contact_id}", json={
+            "first_name": "Обновлённый",
+            "company": "Новая компания"
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["first_name"] == "Обновлённый"
+        assert data["company"] == "Новая компания"
+
+    def test_delete_contact(self, client):
+        """Тест удаления контакта."""
+        # Создаём контакт
+        create_response = client.post("/api/contacts", json={
+            "first_name": "НаУдаление",
+            "last_name": "Удалов"
+        })
+        contact_id = create_response.json()["id"]
+
+        # Удаляем
+        response = client.delete(f"/api/contacts/{contact_id}")
+        assert response.status_code == 200
+
+        # Проверяем что удалён
+        get_response = client.get(f"/api/contacts/{contact_id}")
+        assert get_response.status_code == 404
+
+    def test_toggle_favorite(self, client):
+        """Тест переключения избранного."""
+        # Создаём контакт
+        create_response = client.post("/api/contacts", json={
+            "first_name": "Избранный",
+            "last_name": "Избранов",
+            "is_favorite": False
+        })
+        contact_id = create_response.json()["id"]
+
+        # Переключаем
+        response = client.post(f"/api/contacts/{contact_id}/toggle-favorite")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_favorite"] == True
+
+        # Переключаем обратно
+        response = client.post(f"/api/contacts/{contact_id}/toggle-favorite")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_favorite"] == False
+
+
 class TestCategoryAPI:
     """Тесты API категорий."""
     
