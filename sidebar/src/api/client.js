@@ -1,8 +1,10 @@
 /**
  * API клиент для связи с бэкендом MyInfoManager.
+ * При работе через собранный фронтенд (единый сервер) используется относительный путь.
+ * При разработке (npm start) можно переменной окружения REACT_APP_API_URL указать отдельный бэкенд.
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 /**
  * Выполнить HTTP-запрос к API.

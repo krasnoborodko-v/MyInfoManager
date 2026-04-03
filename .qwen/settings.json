@@ -10,7 +10,13 @@
       "Bash(npm run *)",
       "Bash(findstr *)",
       "Bash(pytest *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(uvicorn *)",
+      "Bash(powershell *)",
+      "Bash(pip install *)",
+      "Bash(pyinstaller *)",
+      "Bash(dir *)",
+      "Bash(start.bat)"
     ]
   },
   "$version": 3
