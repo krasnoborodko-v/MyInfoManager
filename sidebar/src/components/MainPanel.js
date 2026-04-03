@@ -31,6 +31,7 @@ import {
 import { useResources, useNotes, useTasks, useContacts, useSettings, useFoldersTags } from '../hooks';
 import AudioRecorder from './AudioRecorder';
 import ContactPanel from './ContactPanel';
+import { ContactDetailWrapper } from './ContactDetailWrapper';
 import './MainPanel.css';
 
 const sectionConfig = {
@@ -71,12 +72,12 @@ function MainPanel({ activeSection, selectedItemId, onItemSelect }) {
               <TaskDetail id={selectedId} onClose={() => onItemSelect(null)} />
             )}
             {selectedType === 'contact' && (
-              <ContactDetail id={selectedId} onClose={() => onItemSelect(null)} />
+              <ContactDetailWrapper id={selectedId} onClose={() => onItemSelect(null)} />
             )}
           </div>
         ) : (
           activeSection === 'contacts' ? (
-            <ContactPanel />
+            <ContactPanel onItemSelect={onItemSelect} />
           ) : (
             <div className="placeholder-content">
               <div className="placeholder-box">

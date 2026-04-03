@@ -158,13 +158,14 @@ def create_contact(contact: ContactCreate):
 @router.put("/{contact_id}", response_model=ContactResponse)
 def update_contact(contact_id: int, contact: ContactUpdate):
     """Обновить существующий контакт."""
+    import base64
     repo = get_repo()
-    
+
     # Получаем текущий контакт
     current = repo.get_by_id(contact_id)
     if current is None:
         raise HTTPException(status_code=404, detail="Контакт не найден")
-    
+
     # Обновляем только указанные поля
     model = ContactModel(
         id=contact_id,
@@ -178,12 +179,19 @@ def update_contact(contact_id: int, contact: ContactUpdate):
         company=contact.company if contact.company is not None else current.company,
         position=contact.position if contact.position is not None else current.position,
         birth_date=contact.birth_date if contact.birth_date is not None else current.birth_date,
+        photo=current.photo,  # Сохраняем существующее фото (уже base64 из get_by_id)
+        photo_type=current.photo_type,  # Сохраняем тип фото
         socials=contact.socials if contact.socials is not None else current.socials,
         website=contact.website if contact.website is not None else current.website,
         is_favorite=contact.is_favorite if contact.is_favorite is not None else current.is_favorite,
         notes=contact.notes if contact.notes is not None else current.notes,
     )
     updated = repo.update(model)
+    
+    # Конвертируем фото в base64 для ответа
+    if updated and updated.photo:
+        updated.photo = base64.b64encode(updated.photo).decode('utf-8')
+    
     return updated
 
 

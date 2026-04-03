@@ -35,7 +35,7 @@ const sectionConfig = {
 /**
  * Компонент раздела "Контакты".
  */
-export function ContactPanel() {
+export function ContactPanel({ onItemSelect }) {
   const {
     contacts,
     groups,
@@ -47,6 +47,7 @@ export function ContactPanel() {
     updateContact,
     deleteContact,
     toggleFavorite,
+    getContactById,
     createGroup,
     updateGroup,
     deleteGroup,
@@ -151,8 +152,13 @@ export function ContactPanel() {
     const file = e.target.files[0];
     if (file && selectedContact) {
       await uploadPhoto(selectedContact.id, file);
-      const updated = await loadContacts();
-      // Обновляем выбранный контакт
+      // Перезагружаем контакты
+      await loadContacts();
+      // Загружаем контакт с фото
+      const updated = await getContactById(selectedContact.id);
+      if (updated) {
+        setSelectedContact(updated);
+      }
     }
   };
 
@@ -160,6 +166,13 @@ export function ContactPanel() {
   const handleDeletePhoto = async () => {
     if (selectedContact) {
       await deletePhoto(selectedContact.id);
+      // Перезагружаем контакты
+      await loadContacts();
+      // Загружаем контакт без фото
+      const updated = await getContactById(selectedContact.id);
+      if (updated) {
+        setSelectedContact(updated);
+      }
     }
   };
 
@@ -376,7 +389,12 @@ export function ContactPanel() {
                   <div
                     key={contact.id}
                     className={`contact-card ${selectedContact?.id === contact.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedContact(contact)}
+                    onClick={() => {
+                      setSelectedContact(contact);
+                      if (onItemSelect) {
+                        onItemSelect({ type: 'contact', id: contact.id });
+                      }
+                    }}
                   >
                     <div className="contact-card-header">
                       <div className="contact-photo-wrapper">
@@ -496,7 +514,7 @@ export function ContactPanel() {
 }
 
 // Детали контакта
-function ContactDetail({
+export function ContactDetail({
   contact,
   groups,
   isEditing,
@@ -514,10 +532,6 @@ function ContactDetail({
   const [expandedPhones, setExpandedPhones] = useState(false);
   const [expandedEmails, setExpandedEmails] = useState(false);
   const [expandedSocials, setExpandedSocials] = useState(false);
-
-  console.log('ContactDetail - contact.id:', contact?.id);
-  console.log('ContactDetail - contact.photo:', contact?.photo ? 'exists, length=' + contact.photo.length : 'null');
-  console.log('ContactDetail - contact.photo_type:', contact?.photo_type);
 
   const phones = parseJson(contact.phones);
   const emails = parseJson(contact.emails);

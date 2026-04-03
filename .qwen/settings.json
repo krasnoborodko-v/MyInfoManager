@@ -9,7 +9,8 @@
       "Bash(npm install)",
       "Bash(npm run *)",
       "Bash(findstr *)",
-      "Bash(pytest *)"
+      "Bash(pytest *)",
+      "Bash(git checkout *)"
     ]
   },
   "$version": 3
