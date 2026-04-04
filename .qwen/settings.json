@@ -22,7 +22,18 @@
       "Bash(git commit *)",
       "Bash(git push)",
       "Bash(echo *)",
-      "Bash(mkdir *)"
+      "Bash(mkdir *)",
+      "Bash(ssh *)",
+      "Bash(type *)",
+      "Bash(echo.)",
+      "Bash(position: *)",
+      "Bash(})",
+      "Bash(bottom: *)",
+      "Bash(left: *)",
+      "Bash(right: *)",
+      "Bash(margin-top: *)",
+      "Bash(border-top: *)",
+      "Bash(background:)"
     ]
   },
   "$version": 3

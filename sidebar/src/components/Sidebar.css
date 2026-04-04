@@ -698,3 +698,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+ 
+/* Fix sidebar layout */ 
+.sidebar { flex-direction: column; position: relative; } 
+.sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; margin-top: 0; border-top: 1px solid #004444; background: #002222; } 
+.sidebar-panel { padding-bottom: 60px; } 
