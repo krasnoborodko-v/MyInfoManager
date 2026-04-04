@@ -82,15 +82,13 @@ function App() {
 
   return (
     <div className="app">
-      {!hideSidebar && (
-        <Sidebar
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-          onItemSelect={handleItemSelect}
-          user={user}
-          onLogout={handleLogout}
-        />
-      )}
+      <Sidebar
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        onItemSelect={handleItemSelect}
+        user={user}
+        onLogout={handleLogout}
+      />
       <MainPanel
         activeSection={activeSection}
         selectedItemId={selectedItemId}

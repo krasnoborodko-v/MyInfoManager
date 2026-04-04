@@ -74,7 +74,7 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout 
 
       
 
-      {expandedPanel && (
+      {expandedPanel && activeSection !== 'contacts' &&(
         <div className="sidebar-panel">
           <div className="panel-header">
             <span>{menuItems.find(i => i.id === expandedPanel)?.label}</span>
