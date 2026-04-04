@@ -698,8 +698,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-  
-/* Logout button in sidebar icons strip */  
-.sidebar-logout-bar { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:4px 0; margin-top:auto; }  
-.sidebar-logout { background:none; border:none; color:#558888; cursor:pointer; padding:6px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; width:40px; }  
-.sidebar-logout:hover { color:#ef5350; background:rgba(239,83,80,0.15); } 
+`n/* User icon + popup panel */
+.sidebar-user-icon { display:flex; align-items:center; justify-content:center; padding:10px; margin-top:auto; cursor:pointer; border-radius:6px; color:#66aaaa; transition:all 0.2s; border:1px solid transparent; }
+.sidebar-user-icon:hover { background:#003333; color:#aaffff; border-color:#004444; }
+.sidebar-user-panel { position:absolute; bottom:60px; left:55px; background:#1a2a2a; border:1px solid #006666; border-radius:8px; padding:12px 16px; min-width:200px; box-shadow:0 4px 12px rgba(0,0,0,0.4); z-index:100; }
+.user-panel-name { color:#e0e0e0; font-size:14px; font-weight:600; margin-bottom:4px; }
+.user-panel-email { color:#88aaaa; font-size:12px; margin-bottom:8px; word-break:break-all; }
+.user-panel-divider { height:1px; background:#004444; margin:8px 0; }
+.user-panel-logout { display:flex; align-items:center; gap:8px; background:none; border:none; color:#ef5350; cursor:pointer; padding:8px 12px; border-radius:6px; font-size:13px; width:100%; transition:background 0.2s; }
+.user-panel-logout:hover { background:rgba(239,83,80,0.1); }

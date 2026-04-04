@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   FolderTree, FileText, CheckSquare, Calendar, Clock, Settings,
-  Users, ChevronRight, ChevronDown, Plus, Trash2, Search, LogOut
+  Users, ChevronRight, ChevronDown, Plus, Trash2, Search, LogOut, User
 } from 'lucide-react';
 import { useResources, useNotes, useTasks, useContacts, useSettings, useFoldersTags } from '../hooks';
 import './Sidebar.css';
@@ -19,6 +19,7 @@ const menuItems = [
 function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout }) {
   const [expandedPanel, setExpandedPanel] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUserPanel, setShowUserPanel] = useState(false);
 
   const handleIconClick = (sectionId) => {
     if (activeSection === sectionId) {
@@ -49,9 +50,25 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout 
           );
         })}
       </div>
-      <div className="sidebar-logout-bar">
-        <LogoutButton user={user} onLogout={onLogout} />
-      </div>
+
+      {/* User icon at bottom of icons strip */}
+      {user && (
+        <div className="sidebar-user-icon" onClick={() => setShowUserPanel(!showUserPanel)}>
+          <User size={22} />
+          {/* Popup panel */}
+          {showUserPanel && (
+            <div className="sidebar-user-panel">
+              <div className="user-panel-name">{user.full_name || user.email}</div>
+              <div className="user-panel-email">{user.email}</div>
+              <div className="user-panel-divider"></div>
+              <button className="user-panel-logout" onClick={(e) => { e.stopPropagation(); onLogout(); }}>
+                <LogOut size={14} />
+                <span>Выйти</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {expandedPanel && (
         <div className="sidebar-panel">
@@ -1194,16 +1211,6 @@ function SettingsPanel() {
         />
       </div>
     </div>
-  );
-}
-
-// Компонент кнопки выхода (добавляем в конец sidebar)
-function LogoutButton({ user, onLogout }) {
-  if (!user) return null;
-  return (
-    <button className="sidebar-logout" onClick={onLogout} title={`${user.email || user.full_name} — Выйти`}>
-      <LogOut size={18} />
-    </button>
   );
 }
 
