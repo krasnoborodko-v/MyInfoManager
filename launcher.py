@@ -45,7 +45,7 @@ def main():
     print()
 
     try:
-        uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
+        uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
     except KeyboardInterrupt:
         print("\n[*] Остановка сервера...")
     except Exception as e:
