@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import {
-  FolderTree,
-  FileText,
-  CheckSquare,
-  Calendar,
-  Clock,
-  Settings,
-  Users,
-  ChevronRight,
-  ChevronDown,
-  Plus,
-  Trash2,
-  Search
+  FolderTree, FileText, CheckSquare, Calendar, Clock, Settings,
+  Users, ChevronRight, ChevronDown, Plus, Trash2, Search, LogOut
 } from 'lucide-react';
 import { useResources, useNotes, useTasks, useContacts, useSettings, useFoldersTags } from '../hooks';
 import './Sidebar.css';
@@ -26,7 +16,7 @@ const menuItems = [
   { id: 'settings', icon: Settings, label: 'Настройки' },
 ];
 
-function Sidebar({ activeSection, onSectionChange, onItemSelect }) {
+function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout }) {
   const [expandedPanel, setExpandedPanel] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -104,6 +94,8 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect }) {
           </div>
         </div>
       )}
+
+      <LogoutButton user={user} onLogout={onLogout} />
     </div>
   );
 }
@@ -1200,6 +1192,21 @@ function SettingsPanel() {
           disabled={loading}
         />
       </div>
+    </div>
+  );
+}
+
+// Компонент кнопки выхода (добавляем в конец sidebar)
+function LogoutButton({ user, onLogout }) {
+  if (!user) return null;
+  return (
+    <div className="sidebar-footer">
+      <div className="sidebar-user">
+        <span className="sidebar-user-email">{user.email || user.full_name}</span>
+      </div>
+      <button className="sidebar-logout" onClick={onLogout} title="Выйти">
+        <LogOut size={18} />
+      </button>
     </div>
   );
 }

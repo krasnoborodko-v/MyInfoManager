@@ -6,19 +6,57 @@
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
+// ============================================================
+// Авторизация
+// ============================================================
+
+const TOKEN_KEY = 'mim_access_token';
+const REFRESH_KEY = 'mim_refresh_token';
+
+export function getAuthToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setTokens(access, refresh) {
+  localStorage.setItem(TOKEN_KEY, access);
+  localStorage.setItem(REFRESH_KEY, refresh);
+}
+
+export function clearTokens() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_KEY);
+}
+
+export async function refreshAccessToken() {
+  const refresh = localStorage.getItem(REFRESH_KEY);
+  if (!refresh) return null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refresh }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    localStorage.setItem(TOKEN_KEY, data.access_token);
+    return data.access_token;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Выполнить HTTP-запрос к API.
- * @param {string} endpoint - Эндпоинт API (например, '/api/resources')
- * @param {Object} options - Опции fetch
- * @returns {Promise<any>} - Ответ сервера
+ * Выполнить HTTP-запрос к API с автоматической подстановкой токена.
  */
 async function fetchApi(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  const token = getAuthToken();
 
   const config = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   };
@@ -389,6 +427,41 @@ export const contactsApi = {
   deletePhoto: (contactId) => fetchApi(`/api/contacts/${contactId}/photo`, {
     method: 'DELETE',
   }),
+};
+
+// === Авторизация ===
+
+export const authApi = {
+  register: async (email, password, fullName = '') => {
+    const res = await fetchApi('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, full_name: fullName }),
+    });
+    return res;
+  },
+
+  login: async (email, password) => {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.detail || 'Login failed');
+    }
+    const data = await res.json();
+    setTokens(data.access_token, data.refresh_token);
+    return data;
+  },
+
+  logout: () => {
+    clearTokens();
+  },
+
+  me: async () => {
+    return fetchApi('/auth/me');
+  },
 };
 
 // === Проверка доступности сервера ===
