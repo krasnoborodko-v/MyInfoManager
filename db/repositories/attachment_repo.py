@@ -41,6 +41,7 @@ class AttachmentRepository:
         cursor.execute("""
             INSERT INTO attachment (note_id, file_type, file_data, file_size, note, user_id)
             VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id
         """, (attachment.note_id, attachment.file_type, attachment.file_data, attachment.file_size, attachment.note, user_id))
         self.conn.commit()
         attachment.id = cursor.lastrowid

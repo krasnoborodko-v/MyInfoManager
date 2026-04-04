@@ -35,11 +35,10 @@ def register(user_data: UserCreate):
     # Создаём
     hashed_pw = get_password_hash(user_data.password)
     cursor.execute(
-        'INSERT INTO "user" (email, hashed_password, full_name) VALUES (?, ?, ?)',
+        'INSERT INTO "user" (email, hashed_password, full_name) VALUES (?, ?, ?) RETURNING id',
         (user_data.email, hashed_pw, user_data.full_name),
     )
     conn.commit()
-
     user_id = cursor.lastrowid
 
     return UserResponse(

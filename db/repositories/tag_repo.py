@@ -23,7 +23,7 @@ class TagRepository:
         """Создать тег."""
         cursor = self.conn.cursor()
         cursor.execute(
-            "INSERT INTO tag (name, color, user_id) VALUES (?, ?, ?)",
+            "INSERT INTO tag (name, color, user_id) VALUES (?, ?, ?) RETURNING id",
             (tag.name, tag.color or '#008888', user_id),
         )
         self.conn.commit()

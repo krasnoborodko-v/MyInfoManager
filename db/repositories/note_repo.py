@@ -74,6 +74,7 @@ class NoteRepository:
         cursor.execute("""
             INSERT INTO note (name, kategory_id, note_text, data_time, folder_id, user_id)
             VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id
         """, (note.name, note.kategory_id, note.note_text, note.data_time or datetime.now(), note.folder_id, user_id))
         self.conn.commit()
         note.id = cursor.lastrowid
@@ -103,7 +104,7 @@ class NoteRepository:
         """Создать категорию заметок."""
         cursor = self.conn.cursor()
         cursor.execute(
-            "INSERT INTO kategory_note (name, user_id) VALUES (?, ?)",
+            "INSERT INTO kategory_note (name, user_id) VALUES (?, ?) RETURNING id",
             (name, user_id),
         )
         self.conn.commit()

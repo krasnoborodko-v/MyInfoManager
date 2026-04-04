@@ -190,11 +190,25 @@ class _PostgresCursor(Cursor):
         self._conn = conn
         self._cur = None
         self._desc = None
+        self._lastrowid = None
+        self._returning_row = None
 
     def execute(self, sql: str, parameters: tuple = ()):
         self._cur = self._conn.cursor()
-        # Заменяем ? на %s для psycopg2
+        self._lastrowid = None
+        self._returning_row = None
         adapted_sql = sql.replace("?", "%s")
+        # Если RETURNING id — выполняем и сохраняем результат
+        if 'RETURNING' in adapted_sql.upper():
+            self._cur.execute(adapted_sql, parameters)
+            self._desc = self._cur.description
+            self._returning_row = self._cur.fetchone()
+            if self._returning_row and self._desc:
+                for i, col in enumerate(self._desc):
+                    if col[0].lower() in ('id',):
+                        self._lastrowid = self._returning_row[i]
+                        break
+            return self
         self._cur.execute(adapted_sql, parameters)
         self._desc = self._cur.description
         return self
@@ -207,12 +221,21 @@ class _PostgresCursor(Cursor):
         return self
 
     def fetchone(self) -> Optional[Row]:
+        # Если был RETURNING — вернуть сохранённую строку
+        if self._returning_row is not None:
+            row = self._returning_row
+            self._returning_row = None
+            return _PostgresRow(row, self._desc)
         if not self._cur:
             return None
         row = self._cur.fetchone()
         return _PostgresRow(row, self._desc) if row else None
 
     def fetchall(self) -> List[Row]:
+        if self._returning_row is not None:
+            row = self._returning_row
+            self._returning_row = None
+            return [_PostgresRow(row, self._desc)]
         if not self._cur:
             return []
         return [_PostgresRow(r, self._desc) for r in self._cur.fetchall()]
@@ -224,14 +247,7 @@ class _PostgresCursor(Cursor):
 
     @property
     def lastrowid(self) -> Optional[int]:
-        if not self._cur:
-            return None
-        # psycopg: lastrowid работает только для INSERT ... RETURNING
-        # Для совместимости — пробуем
-        try:
-            return self._cur.lastrowid
-        except AttributeError:
-            return None
+        return self._lastrowid
 
     @property
     def rowcount(self) -> int:

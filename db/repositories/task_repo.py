@@ -66,6 +66,7 @@ class TaskRepository:
         cursor.execute("""
             INSERT INTO task (name, kategory_id, description, data_time, priority, status, user_id)
             VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING id
         """, (task.name, task.kategory_id, task.description, task.data_time, task.priority or 'medium', task.status or 'not_done', user_id))
         self.conn.commit()
         task.id = cursor.lastrowid
@@ -95,7 +96,7 @@ class TaskRepository:
         """Создать категорию задач."""
         cursor = self.conn.cursor()
         cursor.execute(
-            "INSERT INTO kategory_task (name, user_id) VALUES (?, ?)",
+            "INSERT INTO kategory_task (name, user_id) VALUES (?, ?) RETURNING id",
             (name, user_id),
         )
         self.conn.commit()
@@ -148,6 +149,7 @@ class TaskRepository:
         cursor.execute("""
             INSERT INTO subtask (task_id, title, description, due_date, is_completed)
             VALUES (?, ?, ?, ?, ?)
+            RETURNING id
         """, (task_id, subtask.title, subtask.description, subtask.due_date, int(subtask.is_completed or False)))
         self.conn.commit()
         subtask.id = cursor.lastrowid

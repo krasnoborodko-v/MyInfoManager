@@ -39,6 +39,7 @@ class FolderRepository:
         cursor.execute("""
             INSERT INTO folder (name, parent_id, note_category_id, user_id)
             VALUES (?, ?, ?, ?)
+            RETURNING id
         """, (folder.name, folder.parent_id, folder.note_category_id, user_id))
         self.conn.commit()
         folder.id = cursor.lastrowid

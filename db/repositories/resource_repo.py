@@ -65,6 +65,7 @@ class ResourceRepository:
         cursor.execute("""
             INSERT INTO resource (name, kategory_id, url, description, user_id)
             VALUES (?, ?, ?, ?, ?)
+            RETURNING id
         """, (resource.name, resource.kategory_id, resource.url, resource.description, user_id))
         self.conn.commit()
         resource.id = cursor.lastrowid
@@ -94,7 +95,7 @@ class ResourceRepository:
         """Создать категорию ресурса."""
         cursor = self.conn.cursor()
         cursor.execute(
-            "INSERT INTO kategory_resource (name, user_id) VALUES (?, ?)",
+            "INSERT INTO kategory_resource (name, user_id) VALUES (?, ?) RETURNING id",
             (name, user_id),
         )
         self.conn.commit()

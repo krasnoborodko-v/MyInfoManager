@@ -21,7 +21,7 @@ class ContactRepository:
         """Создать группу контактов."""
         cursor = self.conn.cursor()
         cursor.execute(
-            "INSERT INTO contact_group (name, color, user_id) VALUES (?, ?, ?)",
+            "INSERT INTO contact_group (name, color, user_id) VALUES (?, ?, ?) RETURNING id",
             (name, color, user_id),
         )
         self.conn.commit()
@@ -77,6 +77,7 @@ class ContactRepository:
                 phones, emails, address, company, position, birth_date, photo, photo_type,
                 socials, website, is_favorite, notes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING id
         """, (contact.first_name, contact.last_name, contact.middle_name, contact.group_id, user_id,
               contact.phones, contact.emails, contact.address, contact.company, contact.position,
               contact.birth_date, contact.photo, contact.photo_type,
