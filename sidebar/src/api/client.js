@@ -4,7 +4,13 @@
  * При разработке (npm start) можно переменной окружения REACT_APP_API_URL указать отдельный бэкенд.
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+// Определяем базовый URL API
+// Electron: файл:// → нужен localhost
+// Веб: относительный путь (статика на том же сервере)
+const isElectron = window.electronAPI !== undefined;
+const API_BASE_URL = isElectron
+  ? (process.env.REACT_APP_API_URL || 'http://localhost:8000')
+  : (process.env.REACT_APP_API_URL || '');
 
 // ============================================================
 // Авторизация
