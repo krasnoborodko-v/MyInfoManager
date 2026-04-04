@@ -17,7 +17,10 @@
       "Bash(pyinstaller *)",
       "Bash(dir *)",
       "Bash(start.bat)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push)"
     ]
   },
   "$version": 3
