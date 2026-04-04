@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from db.database import init_database
+from db.connection import init_database
 from server.api import resources, notes, tasks, categories, attachments, settings, folders_tags, contacts
 
 

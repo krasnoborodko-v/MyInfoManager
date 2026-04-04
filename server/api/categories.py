@@ -5,7 +5,7 @@ from typing import List
 
 from fastapi import APIRouter
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.repositories.resource_repo import ResourceRepository
 from db.repositories.note_repo import NoteRepository
 from db.repositories.task_repo import TaskRepository

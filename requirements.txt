@@ -16,3 +16,6 @@ httpx>=0.24.0
 
 # Для упаковки в EXE
 pyinstaller>=6.0.0
+
+# PostgreSQL (для сервера)
+psycopg2-binary>=2.9.0

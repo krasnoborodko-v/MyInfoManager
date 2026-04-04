@@ -1,14 +1,15 @@
 """
 Репозиторий для операций с настройками.
 """
-import sqlite3
 from typing import Any, Optional
+
+from ..connection import Connection
 
 
 class SettingsRepository:
     """Репозиторий для работы с настройками."""
 
-    def __init__(self, conn: sqlite3.Connection):
+    def __init__(self, conn: Connection):
         self.conn = conn
 
     def get(self, key: str, default: Optional[str] = None) -> Optional[str]:

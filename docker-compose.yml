@@ -1,0 +1,61 @@
+# ============================================================
+# MyInfoManager — docker-compose.yml (standalone сервис)
+# ============================================================
+# Запуск: docker-compose up -d
+# Остановка: docker-compose down
+#
+# Использует внешнюю инфраструктуру (infra/docker-compose.yml)
+# для PostgreSQL и Nginx.
+# ============================================================
+
+services:
+  myinfomanager:
+    build:
+      context: ..
+      dockerfile: MyInfoManager/Dockerfile
+    container_name: myinfomanager
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
+      - POSTGRES_HOST=${POSTGRES_HOST:-myinfomanager-db}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-myinfomanager}
+      - POSTGRES_USER=${POSTGRES_USER:-myinfo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-myinfo_secret}
+    depends_on:
+      - myinfomanager-db
+    networks:
+      - myinfomanager-net
+    volumes:
+      # Если переключиться на SQLite — том для данных
+      # - sqlite-data:/app/data
+      - uploads-data:/app/data/uploads
+
+  myinfomanager-db:
+    image: postgres:16-alpine
+    container_name: myinfomanager-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-myinfomanager}
+      - POSTGRES_USER=${POSTGRES_USER:-myinfo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-myinfo_secret}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - myinfomanager-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myinfo -d myinfomanager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  myinfomanager-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  uploads-data:
+  # sqlite-data:

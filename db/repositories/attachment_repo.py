@@ -1,16 +1,16 @@
 """
 Репозиторий для операций CRUD с вложениями.
 """
-import sqlite3
 from typing import List, Optional
 
+from ..connection import Connection
 from ..models import Attachment
 
 
 class AttachmentRepository:
     """Репозиторий для работы с вложениями."""
 
-    def __init__(self, conn: sqlite3.Connection):
+    def __init__(self, conn: Connection):
         self.conn = conn
 
     def get_by_note_id(self, note_id: int) -> List[Attachment]:

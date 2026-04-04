@@ -4,13 +4,14 @@
 import json
 from typing import List, Optional
 
-from db.models import Contact, ContactGroup
+from ..connection import Connection
+from ..models import Contact, ContactGroup
 
 
 class ContactRepository:
     """Репозиторий для контактов."""
 
-    def __init__(self, conn):
+    def __init__(self, conn: Connection):
         """
         Инициализировать репозиторий.
 

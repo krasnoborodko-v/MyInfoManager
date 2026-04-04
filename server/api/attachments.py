@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import Response
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.models import Attachment
 from db.repositories.attachment_repo import AttachmentRepository
 

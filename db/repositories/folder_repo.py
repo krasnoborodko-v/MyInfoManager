@@ -1,16 +1,16 @@
 """
 Репозиторий для операций с папками заметок.
 """
-import sqlite3
 from typing import List, Optional
 
+from ..connection import Connection
 from ..models import Folder
 
 
 class FolderRepository:
     """Репозиторий для работы с папками."""
 
-    def __init__(self, conn: sqlite3.Connection):
+    def __init__(self, conn: Connection):
         self.conn = conn
 
     def get_all(self, category_id: Optional[int] = None) -> List[Folder]:

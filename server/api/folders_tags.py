@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Body
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.models import Folder, Tag
 from db.repositories.folder_repo import FolderRepository
 from db.repositories.tag_repo import TagRepository

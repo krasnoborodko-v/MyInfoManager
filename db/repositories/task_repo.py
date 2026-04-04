@@ -1,17 +1,17 @@
 """
 Репозиторий для операций CRUD с задачами.
 """
-import sqlite3
 from datetime import datetime
 from typing import List, Optional
 
+from ..connection import Connection
 from ..models import Task, KategoryTask, Subtask
 
 
 class TaskRepository:
     """Репозиторий для работы с задачами."""
 
-    def __init__(self, conn: sqlite3.Connection):
+    def __init__(self, conn: Connection):
         self.conn = conn
 
     def get_all(self, kategory_id: Optional[int] = None) -> List[Task]:

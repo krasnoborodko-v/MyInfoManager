@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Body
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.models import Note as NoteModel
 from db.repositories.note_repo import NoteRepository
 from server.schemas import (

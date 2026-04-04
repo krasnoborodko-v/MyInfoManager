@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 from fastapi import APIRouter, HTTPException, Form
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.repositories.settings_repo import SettingsRepository
 
 

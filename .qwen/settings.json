@@ -16,7 +16,8 @@
       "Bash(pip install *)",
       "Bash(pyinstaller *)",
       "Bash(dir *)",
-      "Bash(start.bat)"
+      "Bash(start.bat)",
+      "Bash(node *)"
     ]
   },
   "$version": 3

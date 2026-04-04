@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form # type: ignore
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.models import Contact as ContactModel, ContactGroup as ContactGroupModel
 from db.repositories.contact_repo import ContactRepository
 from server.schemas import (

@@ -1,16 +1,16 @@
 """
 Репозиторий для операций CRUD с ресурсами.
 """
-import sqlite3
 from typing import List, Optional
 
+from ..connection import Connection
 from ..models import Resource, KategoryResource
 
 
 class ResourceRepository:
     """Репозиторий для работы с ресурсами."""
-    
-    def __init__(self, conn: sqlite3.Connection):
+
+    def __init__(self, conn: Connection):
         self.conn = conn
     
     def get_all(self, kategory_id: Optional[int] = None) -> List[Resource]:

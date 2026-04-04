@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.models import Resource as ResourceModel
 from db.repositories.resource_repo import ResourceRepository
 from server.schemas import (

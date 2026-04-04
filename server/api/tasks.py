@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query # type: ignore
 
-from db.database import get_connection
+from db.connection import get_connection
 from db.models import Task as TaskModel, Subtask as SubtaskModel
 from db.repositories.task_repo import TaskRepository
 from server.schemas import (
