@@ -206,9 +206,10 @@ export const notesApi = {
   updateAttachment: async (id, note) => {
     const formData = new FormData();
     formData.append('note', note);
-    
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/api/attachments/${id}/note`, {
       method: 'PUT',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
       // Не устанавливаем Content-Type - браузер сам установит multipart/form-data с boundary
     });
