@@ -48,6 +48,8 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout 
             </button>
           );
         })}
+
+        <LogoutButton user={user} onLogout={onLogout} />
       </div>
 
       {expandedPanel && (
@@ -94,8 +96,6 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout 
           </div>
         </div>
       )}
-
-      <LogoutButton user={user} onLogout={onLogout} />
     </div>
   );
 }
