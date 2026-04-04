@@ -342,6 +342,19 @@ def create_tables(conn: Connection) -> None:
         )
     """)
 
+    # Таблица папок для заметок (СОЗДАЁМ ДО note — note ссылается на folder)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS folder (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            parent_id INTEGER,
+            note_category_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (parent_id) REFERENCES folder(id) ON DELETE CASCADE,
+            FOREIGN KEY (note_category_id) REFERENCES kategory_note(id) ON DELETE CASCADE
+        )
+    """)
+
     # Таблица заметок
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS note (
@@ -493,19 +506,6 @@ def create_tables(conn: Connection) -> None:
                 ('theme', 'dark', 'Тема оформления')
             ON CONFLICT (key) DO NOTHING
         """)
-
-    # Таблица папок
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS folder (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            parent_id INTEGER,
-            note_category_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (parent_id) REFERENCES folder(id) ON DELETE CASCADE,
-            FOREIGN KEY (note_category_id) REFERENCES kategory_note(id) ON DELETE CASCADE
-        )
-    """)
 
     # Таблица тегов
     cursor.execute("""
