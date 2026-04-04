@@ -48,27 +48,29 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout 
               <Icon size={24} />
             </button>
           );
+
+          {/* User icon at bottom of icons strip */}
+          {user && (
+            <div className="sidebar-user-icon" onClick={() => setShowUserPanel(!showUserPanel)}>
+              <User size={22} />
+              {/* Popup panel */}
+              {showUserPanel && (
+                <div className="sidebar-user-panel">
+                  <div className="user-panel-name">{user.full_name || user.email}</div>
+                  <div className="user-panel-email">{user.email}</div>
+                  <div className="user-panel-divider"></div>
+                  <button className="user-panel-logout" onClick={(e) => { e.stopPropagation(); onLogout(); }}>
+                    <LogOut size={14} />
+                    <span>Выйти</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         })}
       </div>
 
-      {/* User icon at bottom of icons strip */}
-      {user && (
-        <div className="sidebar-user-icon" onClick={() => setShowUserPanel(!showUserPanel)}>
-          <User size={22} />
-          {/* Popup panel */}
-          {showUserPanel && (
-            <div className="sidebar-user-panel">
-              <div className="user-panel-name">{user.full_name || user.email}</div>
-              <div className="user-panel-email">{user.email}</div>
-              <div className="user-panel-divider"></div>
-              <button className="user-panel-logout" onClick={(e) => { e.stopPropagation(); onLogout(); }}>
-                <LogOut size={14} />
-                <span>Выйти</span>
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      
 
       {expandedPanel && (
         <div className="sidebar-panel">
