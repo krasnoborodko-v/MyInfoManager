@@ -317,11 +317,84 @@ class ContactUpdate(BaseModel):
 class ContactResponse(ContactBase):
     """Схема ответа контакта."""
     id: int
-    photo: Optional[str] = None  # Base64 encoded
+    photo: Optional[str] = None
     photo_type: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     group_name: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+# === Вложения ===
+
+class AttachmentResponse(BaseModel):
+    id: int
+    note_id: int
+    file_type: str
+    file_size: Optional[int] = None
+    note: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+# === Папки ===
+
+class FolderCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    parent_id: Optional[int] = None
+    note_category_id: Optional[int] = None
+
+class FolderUpdate(BaseModel):
+    name: Optional[str] = None
+    parent_id: Optional[int] = None
+    note_category_id: Optional[int] = None
+
+class FolderResponse(BaseModel):
+    id: int
+    name: str
+    parent_id: Optional[int] = None
+    note_category_id: Optional[int] = None
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+# === Теги ===
+
+class TagCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    color: str = "#008888"
+
+class TagUpdate(BaseModel):
+    name: Optional[str] = None
+    color: Optional[str] = None
+
+class TagResponse(BaseModel):
+    id: int
+    name: str
+    color: str
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+# === Группы контактов ===
+
+class ContactGroupCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    color: str = "#008888"
+
+class ContactGroupUpdate(BaseModel):
+    name: Optional[str] = None
+    color: Optional[str] = None
+
+class ContactGroupResponse(BaseModel):
+    id: int
+    name: str
+    color: str
+    created_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 
