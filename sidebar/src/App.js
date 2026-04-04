@@ -78,15 +78,19 @@ function App() {
   }
 
   // Авторизован — основное приложение
+  const hideSidebar = activeSection === 'contacts';
+
   return (
     <div className="app">
-      <Sidebar
-        activeSection={activeSection}
-        onSectionChange={handleSectionChange}
-        onItemSelect={handleItemSelect}
-        user={user}
-        onLogout={handleLogout}
-      />
+      {!hideSidebar && (
+        <Sidebar
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+          onItemSelect={handleItemSelect}
+          user={user}
+          onLogout={handleLogout}
+        />
+      )}
       <MainPanel
         activeSection={activeSection}
         selectedItemId={selectedItemId}

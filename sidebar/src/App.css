@@ -17,6 +17,11 @@ body {
   overflow: hidden;
 }
 
+.main-panel {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Скроллбары */
 ::-webkit-scrollbar {
   width: 8px;

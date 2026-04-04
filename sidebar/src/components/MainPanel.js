@@ -54,11 +54,16 @@ function MainPanel({ activeSection, selectedItemId, onItemSelect }) {
   return (
     <div className="main-panel">
       <div className="main-content">
-        <div className="section-header">
-          {Icon && <Icon size={32} />}
-          <h1>{config?.title}</h1>
-        </div>
-        <p className="section-description">{config?.description}</p>
+        {/* Заголовок — скрываем для контактов, у ContactPanel свой */}
+        {activeSection !== 'contacts' && (
+          <>
+            <div className="section-header">
+              {Icon && <Icon size={32} />}
+              <h1>{config?.title}</h1>
+            </div>
+            <p className="section-description">{config?.description}</p>
+          </>
+        )}
 
         {selectedId ? (
           <div className="item-detail">
