@@ -226,7 +226,11 @@ export const notesApi = {
     method: 'DELETE',
   }),
   
-  getAttachmentData: (id) => `${API_BASE_URL}/api/attachments/${id}?download=true`,
+  getAttachmentData: (id) => {
+    const token = getAuthToken();
+    const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
+    return `${API_BASE_URL}/api/attachments/${id}?download=true${tokenParam}`;
+  },
 };
 
 // === Настройки ===

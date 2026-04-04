@@ -1,16 +1,16 @@
 """
 API эндпоинты для вложений.
 """
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Header
 from fastapi.responses import Response
 
 from db.connection import get_connection
 from db.models import Attachment, User
 from db.repositories.attachment_repo import AttachmentRepository
 from server.schemas import AttachmentResponse
-from server.auth import get_current_user
+from server.auth import get_current_user, decode_token
 
 router = APIRouter(prefix="/api/attachments", tags=["attachments"])
 
@@ -62,12 +62,35 @@ async def update_attachment_note(
 def download_attachment(
     attachment_id: int,
     download: bool = False,
-    current_user: User = Depends(get_current_user),
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
 ):
-    attachment = get_repo().get_by_id(attachment_id, user_id=current_user.id)
+    # 1. Получаем токен из URL или заголовка
+    auth_token = token
+    if not auth_token and authorization and authorization.startswith("Bearer "):
+        auth_token = authorization.split(" ", 1)[1]
+
+    if not auth_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # 2. Декодируем токен
+    try:
+        payload = decode_token(auth_token, "access")
+        user_id = payload.get("user_id")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+
+    # 3. Проверяем доступ
+    repo = get_repo()
+    attachment = repo.get_by_id(attachment_id, user_id=user_id)
     if not attachment:
         raise HTTPException(status_code=404, detail="Вложение не найдено")
-    file_data = get_repo().get_file_data(attachment_id, user_id=current_user.id)
+
+    # 4. Отдаём файл
+    file_data = repo.get_file_data(attachment_id, user_id=user_id)
     return Response(
         content=file_data,
         media_type=attachment.file_type,
