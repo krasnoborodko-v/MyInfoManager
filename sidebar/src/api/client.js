@@ -184,11 +184,14 @@ export const notesApi = {
     if (note) {
       formData.append('note', note);
     }
-    
+
     const url = `${API_BASE_URL}/api/attachments/note/${noteId}`;
     
+    const token = getAuthToken();
+
     const response = await fetch(url, {
       method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
     });
     
