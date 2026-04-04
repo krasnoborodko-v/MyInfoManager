@@ -69,7 +69,12 @@
       "Bash(display:flex)",
       "Bash(justify-content:center)",
       "Bash(transition:all *)",
-      "Bash(background:rgba)"
+      "Bash(background:rgba)",
+      "Bash(justify-content:flex-end)",
+      "Bash(color:#558888)",
+      "Bash(padding:6px)",
+      "Bash(border-radius:6px)",
+      "Bash(width:40px)"
     ]
   },
   "$version": 3

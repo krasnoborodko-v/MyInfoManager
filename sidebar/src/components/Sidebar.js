@@ -48,7 +48,8 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout 
             </button>
           );
         })}
-
+      </div>
+      <div className="sidebar-logout-bar">
         <LogoutButton user={user} onLogout={onLogout} />
       </div>
 
@@ -1200,14 +1201,9 @@ function SettingsPanel() {
 function LogoutButton({ user, onLogout }) {
   if (!user) return null;
   return (
-    <div className="sidebar-footer">
-      <div className="sidebar-user">
-        <span className="sidebar-user-email">{user.email || user.full_name}</span>
-      </div>
-      <button className="sidebar-logout" onClick={onLogout} title="Выйти">
-        <LogOut size={18} />
-      </button>
-    </div>
+    <button className="sidebar-logout" onClick={onLogout} title={`${user.email || user.full_name} — Выйти`}>
+      <LogOut size={18} />
+    </button>
   );
 }
 
