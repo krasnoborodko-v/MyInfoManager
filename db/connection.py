@@ -313,12 +313,30 @@ def create_tables(conn: Connection) -> None:
     (с синтаксисом ? вместо %s — обёртка сама конвертирует).
     """
     cursor = conn.cursor()
+    db_type = _get_db_type()
 
-    # Таблица категорий ресурсов
+    # ============================================================
+    # Таблица пользователей (СОЗДАЁМ ПЕРВОЙ)
+    # ============================================================
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS "user" (
+            id SERIAL PRIMARY KEY,
+            email TEXT NOT NULL UNIQUE,
+            hashed_password TEXT NOT NULL,
+            full_name TEXT DEFAULT '',
+            is_active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Таблица ресурсов
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS kategory_resource (
             id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE
+            name TEXT NOT NULL,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
+            UNIQUE(name, user_id)
         )
     """)
 
@@ -328,6 +346,7 @@ def create_tables(conn: Connection) -> None:
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             kategory_id INTEGER,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
             url TEXT,
             description TEXT,
             FOREIGN KEY (kategory_id) REFERENCES kategory_resource(id) ON DELETE SET NULL
@@ -338,15 +357,18 @@ def create_tables(conn: Connection) -> None:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS kategory_note (
             id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE
+            name TEXT NOT NULL,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
+            UNIQUE(name, user_id)
         )
     """)
 
-    # Таблица папок для заметок (СОЗДАЁМ ДО note — note ссылается на folder)
+    # Таблица папок для заметок
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS folder (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
             parent_id INTEGER,
             note_category_id INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -361,6 +383,7 @@ def create_tables(conn: Connection) -> None:
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             kategory_id INTEGER,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
             note_text TEXT,
             data_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             folder_id INTEGER,
@@ -369,7 +392,7 @@ def create_tables(conn: Connection) -> None:
         )
     """)
 
-    # Миграция folder_id (только SQLite — для PostgreSQL создаётся сразу)
+    # Миграция folder_id (только SQLite)
     if _get_db_type() == "sqlite":
         cursor.execute("PRAGMA table_info(note)")
         columns = [col[1] for col in cursor.fetchall()]
@@ -380,7 +403,9 @@ def create_tables(conn: Connection) -> None:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS kategory_task (
             id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE
+            name TEXT NOT NULL,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
+            UNIQUE(name, user_id)
         )
     """)
 
@@ -390,6 +415,7 @@ def create_tables(conn: Connection) -> None:
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             kategory_id INTEGER,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
             description TEXT,
             data_time TIMESTAMP,
             priority TEXT DEFAULT 'medium',
@@ -409,6 +435,21 @@ def create_tables(conn: Connection) -> None:
             cursor.execute("ALTER TABLE task ADD COLUMN status TEXT DEFAULT 'not_done'")
         if 'created_at' not in columns:
             cursor.execute("ALTER TABLE task ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+
+    # ============================================================
+    # Миграции user_id (SQLite — добавляем колонки к существующим таблицам)
+    # ============================================================
+    if db_type == "sqlite":
+        tables_with_user = [
+            'resource', 'note', 'task', 'contact', 'folder', 'tag',
+            'kategory_resource', 'kategory_note', 'kategory_task',
+            'contact_group', 'attachment'
+        ]
+        for table in tables_with_user:
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns = [col[1] for col in cursor.fetchall()]
+            if 'user_id' not in columns:
+                cursor.execute(f"ALTER TABLE {table} ADD COLUMN user_id INTEGER")
 
     # Таблица подзадач
     cursor.execute("""
@@ -511,9 +552,11 @@ def create_tables(conn: Connection) -> None:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tag (
             id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
             color TEXT DEFAULT '#008888',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(name, user_id)
         )
     """)
 
@@ -543,21 +586,25 @@ def create_tables(conn: Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_note_tag_tag ON note_tag(tag_id)
     """)
 
-    # === Контакты ===
+    # Таблица групп контактов
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS contact_group (
             id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
             color TEXT DEFAULT '#008888',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(name, user_id)
         )
     """)
 
+    # Таблица контактов
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS contact (
             id SERIAL PRIMARY KEY,
             first_name TEXT NOT NULL DEFAULT '',
             last_name TEXT NOT NULL DEFAULT '',
+            user_id INTEGER REFERENCES "user"(id) ON DELETE CASCADE,
             middle_name TEXT DEFAULT '',
             group_id INTEGER,
             phones TEXT,

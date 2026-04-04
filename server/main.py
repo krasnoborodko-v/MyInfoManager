@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from db.connection import init_database
-from server.api import resources, notes, tasks, categories, attachments, settings, folders_tags, contacts
+from server.api import resources, notes, tasks, categories, attachments, settings, folders_tags, contacts, auth
 
 
 # Инициализация базы данных при старте
@@ -44,6 +44,7 @@ app.include_router(attachments.router)
 app.include_router(settings.router)
 app.include_router(folders_tags.router)
 app.include_router(contacts.router)
+app.include_router(auth.router)
 
 
 @app.get("/health")

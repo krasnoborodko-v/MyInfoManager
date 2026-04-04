@@ -19,3 +19,7 @@ pyinstaller>=6.0.0
 
 # PostgreSQL (для сервера)
 psycopg2-binary>=2.9.0
+
+# Авторизация
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4

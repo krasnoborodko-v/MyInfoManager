@@ -2,9 +2,54 @@
 Pydantic схемы для валидации данных API.
 """
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
+
+
+# === Авторизация ===
+
+class UserCreate(BaseModel):
+    """Регистрация нового пользователя."""
+    email: str = Field(..., min_length=3, max_length=200)
+    password: str = Field(..., min_length=6, max_length=128)
+    full_name: str = Field("", max_length=200)
+
+
+class UserLogin(BaseModel):
+    """Вход в систему."""
+    email: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    """Информация о пользователе (без пароля)."""
+    id: int
+    email: str
+    full_name: str
+    is_active: bool
+    created_at: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+class Token(BaseModel):
+    """Ответ при успешном входе."""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class TokenRefresh(BaseModel):
+    """Запрос на обновление токена."""
+    refresh_token: str
+
+
+class TokenRefreshResponse(BaseModel):
+    """Ответ с новым access-токеном."""
+    access_token: str
+    token_type: str = "bearer"
 
 
 # === Категории ресурсов ===

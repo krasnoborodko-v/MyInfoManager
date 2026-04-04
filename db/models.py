@@ -6,6 +6,42 @@ from datetime import datetime
 from typing import Optional
 
 
+# === Пользователи ===
+
+@dataclass
+class User:
+    """Пользователь системы."""
+    id: Optional[int] = None
+    email: str = ""
+    hashed_password: str = ""
+    full_name: str = ""
+    is_active: bool = True
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "email": self.email,
+            "full_name": self.full_name,
+            "is_active": self.is_active,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+    @classmethod
+    def from_row(cls, row) -> "User":
+        return cls(
+            id=row["id"],
+            email=row["email"],
+            hashed_password=row.get("hashed_password", ""),
+            full_name=row.get("full_name", ""),
+            is_active=bool(row.get("is_active", True)),
+            created_at=row.get("created_at"),
+            updated_at=row.get("updated_at"),
+        )
+
+
 # === Категории ресурсов ===
 
 @dataclass
