@@ -1,5 +1,6 @@
 """
 Репозиторий для работы с контактами.
+Все методы принимают user_id для изоляции данных пользователей.
 """
 import json
 from typing import List, Optional
@@ -12,290 +13,165 @@ class ContactRepository:
     """Репозиторий для контактов."""
 
     def __init__(self, conn: Connection):
-        """
-        Инициализировать репозиторий.
-
-        Args:
-            conn: Подключение к базе данных.
-        """
         self.conn = conn
 
-    # === Методы для групп контактов ===
+    # --- Группы ---
 
-    def get_groups(self) -> List[ContactGroup]:
-        """
-        Получить все группы контактов.
-
-        Returns:
-            Список групп.
-        """
+    def create_group(self, name: str, user_id: int, color: str = '#008888') -> ContactGroup:
+        """Создать группу контактов."""
         cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT id, name, color, created_at
-            FROM contact_group
-            ORDER BY name
-        """)
+        cursor.execute(
+            "INSERT INTO contact_group (name, color, user_id) VALUES (?, ?, ?)",
+            (name, color, user_id),
+        )
+        self.conn.commit()
+        return ContactGroup(id=cursor.lastrowid, name=name, color=color)
+
+    def get_groups(self, user_id: int) -> List[ContactGroup]:
+        """Получить все группы пользователя."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "SELECT * FROM contact_group WHERE user_id = ? ORDER BY name",
+            (user_id,),
+        )
         return [ContactGroup.from_row(row) for row in cursor.fetchall()]
 
-    def get_group_by_id(self, group_id: int) -> Optional[ContactGroup]:
-        """
-        Получить группу по ID.
-
-        Args:
-            group_id: ID группы.
-
-        Returns:
-            Группа или None, если не найдена.
-        """
+    def update_group(self, group_id: int, user_id: int, name: Optional[str] = None, color: Optional[str] = None) -> Optional[ContactGroup]:
+        """Обновить группу."""
+        group = self.get_group_by_id(group_id, user_id)
+        if not group:
+            return None
+        if name is not None:
+            group.name = name
+        if color is not None:
+            group.color = color
         cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT id, name, color, created_at
-            FROM contact_group
-            WHERE id = ?
-        """, (group_id,))
+        cursor.execute(
+            "UPDATE contact_group SET name = ?, color = ? WHERE id = ? AND user_id = ?",
+            (group.name, group.color, group_id, user_id),
+        )
+        self.conn.commit()
+        return group
+
+    def get_group_by_id(self, group_id: int, user_id: int) -> Optional[ContactGroup]:
+        """Получить группу по ID."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM contact_group WHERE id = ? AND user_id = ?", (group_id, user_id))
         row = cursor.fetchone()
         return ContactGroup.from_row(row) if row else None
 
-    def create_group(self, name: str, color: str = "#008888") -> ContactGroup:
-        """
-        Создать новую группу.
-
-        Args:
-            name: Название группы.
-            color: Цвет группы.
-
-        Returns:
-            Созданная группа.
-        """
+    def delete_group(self, group_id: int, user_id: int) -> bool:
+        """Удалить группу."""
         cursor = self.conn.cursor()
-        cursor.execute("""
-            INSERT INTO contact_group (name, color)
-            VALUES (?, ?)
-        """, (name, color))
-        self.conn.commit()
-        return self.get_group_by_id(cursor.lastrowid)
-
-    def update_group(self, group_id: int, name: Optional[str] = None, color: Optional[str] = None) -> Optional[ContactGroup]:
-        """
-        Обновить группу.
-
-        Args:
-            group_id: ID группы.
-            name: Новое название.
-            color: Новый цвет.
-
-        Returns:
-            Обновлённая группа или None.
-        """
-        cursor = self.conn.cursor()
-        
-        # Получаем текущие данные
-        current = self.get_group_by_id(group_id)
-        if current is None:
-            return None
-        
-        new_name = name if name is not None else current.name
-        new_color = color if color is not None else current.color
-        
-        cursor.execute("""
-            UPDATE contact_group
-            SET name = ?, color = ?
-            WHERE id = ?
-        """, (new_name, new_color, group_id))
-        self.conn.commit()
-        return self.get_group_by_id(group_id)
-
-    def delete_group(self, group_id: int) -> bool:
-        """
-        Удалить группу.
-
-        Args:
-            group_id: ID группы.
-
-        Returns:
-            True, если удалена, False иначе.
-        """
-        cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM contact_group WHERE id = ?", (group_id,))
+        cursor.execute("DELETE FROM contact_group WHERE id = ? AND user_id = ?", (group_id, user_id))
         self.conn.commit()
         return cursor.rowcount > 0
 
-    # === Методы для контактов ===
+    # --- Контакты ---
 
-    def get_all(self, group_id: Optional[int] = None, favorite_only: bool = False, search: Optional[str] = None) -> List[Contact]:
-        """
-        Получить все контакты с фильтрацией.
-
-        Args:
-            group_id: ID группы для фильтрации.
-            favorite_only: Только избранные.
-            search: Поисковый запрос.
-
-        Returns:
-            Список контактов.
-        """
-        cursor = self.conn.cursor()
-        
-        query = """
-            SELECT c.id, c.first_name, c.last_name, c.middle_name, c.group_id,
-                   c.phones, c.emails, c.address, c.company, c.position,
-                   c.birth_date, c.photo, c.photo_type, c.socials, c.website,
-                   c.is_favorite, c.notes, c.created_at, c.updated_at,
-                   g.name as group_name
-            FROM contact c
-            LEFT JOIN contact_group g ON c.group_id = g.id
-            WHERE 1=1
-        """
-        params = []
-        
-        if group_id is not None:
-            query += " AND c.group_id = ?"
-            params.append(group_id)
-        
-        if favorite_only:
-            query += " AND c.is_favorite = 1"
-        
-        if search:
-            query += """
-                AND (
-                    c.first_name LIKE ? OR
-                    c.last_name LIKE ? OR
-                    c.middle_name LIKE ? OR
-                    c.company LIKE ? OR
-                    c.phones LIKE ? OR
-                    c.emails LIKE ?
-                )
-            """
-            search_pattern = f"%{search}%"
-            params.extend([search_pattern] * 6)
-        
-        query += " ORDER BY c.last_name, c.first_name"
-        
-        cursor.execute(query, params)
-        return [Contact.from_row(row) for row in cursor.fetchall()]
-
-    def get_by_id(self, contact_id: int) -> Optional[Contact]:
-        """
-        Получить контакт по ID.
-
-        Args:
-            contact_id: ID контакта.
-
-        Returns:
-            Контакт или None.
-        """
+    def create(self, contact: Contact, user_id: int) -> Contact:
+        """Создать контакт."""
         cursor = self.conn.cursor()
         cursor.execute("""
-            SELECT c.id, c.first_name, c.last_name, c.middle_name, c.group_id,
-                   c.phones, c.emails, c.address, c.company, c.position,
-                   c.birth_date, c.photo, c.photo_type, c.socials, c.website,
-                   c.is_favorite, c.notes, c.created_at, c.updated_at,
-                   g.name as group_name
-            FROM contact c
-            LEFT JOIN contact_group g ON c.group_id = g.id
-            WHERE c.id = ?
-        """, (contact_id,))
+            INSERT INTO contact (first_name, last_name, middle_name, group_id, user_id,
+                phones, emails, address, company, position, birth_date, photo, photo_type,
+                socials, website, is_favorite, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (contact.first_name, contact.last_name, contact.middle_name, contact.group_id, user_id,
+              contact.phones, contact.emails, contact.address, contact.company, contact.position,
+              contact.birth_date, contact.photo, contact.photo_type,
+              contact.socials, contact.website, int(contact.is_favorite or False), contact.notes))
+        self.conn.commit()
+        contact.id = cursor.lastrowid
+        return contact
+
+    def get_all(self, user_id: int, group_id: Optional[int] = None, favorite: bool = False, search: Optional[str] = None) -> List[Contact]:
+        """Получить все контакты пользователя."""
+        cursor = self.conn.cursor()
+        query = "SELECT * FROM contact WHERE user_id = ?"
+        params: list = [user_id]
+
+        if group_id is not None:
+            query += " AND group_id = ?"
+            params.append(group_id)
+        if favorite:
+            query += " AND is_favorite = 1"
+        if search:
+            query += " AND (first_name LIKE ? OR last_name LIKE ? OR company LIKE ?)"
+            params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
+
+        query += " ORDER BY last_name, first_name"
+        cursor.execute(query, tuple(params))
+        return [Contact.from_row(row) for row in cursor.fetchall()]
+
+    def get_by_id(self, contact_id: int, user_id: int) -> Optional[Contact]:
+        """Получить контакт по ID."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM contact WHERE id = ? AND user_id = ?", (contact_id, user_id))
         row = cursor.fetchone()
         return Contact.from_row(row) if row else None
 
-    def create(self, contact: Contact) -> Contact:
-        """
-        Создать новый контакт.
-
-        Args:
-            contact: Контакт для создания.
-
-        Returns:
-            Созданный контакт с ID.
-        """
+    def update(self, contact: Contact, user_id: int) -> Optional[Contact]:
+        """Обновить контакт."""
         cursor = self.conn.cursor()
         cursor.execute("""
-            INSERT INTO contact (
-                first_name, last_name, middle_name, group_id,
-                phones, emails, address, company, position,
-                birth_date, photo, photo_type, socials, website,
-                is_favorite, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            contact.first_name, contact.last_name, contact.middle_name, contact.group_id,
-            contact.phones, contact.emails, contact.address, contact.company, contact.position,
-            contact.birth_date, contact.photo, contact.photo_type, contact.socials, contact.website,
-            1 if contact.is_favorite else 0, contact.notes
-        ))
+            UPDATE contact SET first_name=?, last_name=?, middle_name=?, group_id=?,
+                phones=?, emails=?, address=?, company=?, position=?, birth_date=?,
+                photo=?, photo_type=?, socials=?, website=?, is_favorite=?, notes=?
+            WHERE id = ? AND user_id = ?
+        """, (contact.first_name, contact.last_name, contact.middle_name, contact.group_id,
+              contact.phones, contact.emails, contact.address, contact.company, contact.position,
+              contact.birth_date, contact.photo, contact.photo_type,
+              contact.socials, contact.website, int(contact.is_favorite or False), contact.notes,
+              contact.id, user_id))
         self.conn.commit()
-        return self.get_by_id(cursor.lastrowid)
-
-    def update(self, contact: Contact) -> Optional[Contact]:
-        """
-        Обновить контакт.
-
-        Args:
-            contact: Контакт с обновлёнными данными.
-
-        Returns:
-            Обновлённый контакт или None.
-        """
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            UPDATE contact
-            SET first_name = ?, last_name = ?, middle_name = ?, group_id = ?,
-                phones = ?, emails = ?, address = ?, company = ?, position = ?,
-                birth_date = ?, photo = ?, photo_type = ?, socials = ?, website = ?,
-                is_favorite = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        """, (
-            contact.first_name, contact.last_name, contact.middle_name, contact.group_id,
-            contact.phones, contact.emails, contact.address, contact.company, contact.position,
-            contact.birth_date, contact.photo, contact.photo_type, contact.socials, contact.website,
-            1 if contact.is_favorite else 0, contact.notes, contact.id
-        ))
-        self.conn.commit()
-        
         if cursor.rowcount == 0:
             return None
-        
-        return self.get_by_id(contact.id)
+        return self.get_by_id(contact.id, user_id)
 
-    def delete(self, contact_id: int) -> bool:
-        """
-        Удалить контакт.
-
-        Args:
-            contact_id: ID контакта.
-
-        Returns:
-            True, если удалён, False иначе.
-        """
+    def delete(self, contact_id: int, user_id: int) -> bool:
+        """Удалить контакт."""
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM contact WHERE id = ?", (contact_id,))
+        cursor.execute("DELETE FROM contact WHERE id = ? AND user_id = ?", (contact_id, user_id))
         self.conn.commit()
         return cursor.rowcount > 0
 
-    def toggle_favorite(self, contact_id: int) -> Optional[Contact]:
-        """
-        Переключить статус избранного.
-
-        Args:
-            contact_id: ID контакта.
-
-        Returns:
-            Обновлённый контакт или None.
-        """
-        contact = self.get_by_id(contact_id)
-        if contact is None:
+    def toggle_favorite(self, contact_id: int, user_id: int) -> Optional[Contact]:
+        """Переключить избранное."""
+        contact = self.get_by_id(contact_id, user_id)
+        if not contact:
             return None
-        
         contact.is_favorite = not contact.is_favorite
-        return self.update(contact)
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE contact SET is_favorite = ? WHERE id = ? AND user_id = ?",
+            (int(contact.is_favorite), contact_id, user_id),
+        )
+        self.conn.commit()
+        return contact
 
-    def search(self, query: str) -> List[Contact]:
-        """
-        Поиск контактов.
+    def upload_photo(self, contact_id: int, user_id: int, photo_data: bytes, photo_type: str) -> Optional[Contact]:
+        """Загрузить фото контакта."""
+        contact = self.get_by_id(contact_id, user_id)
+        if not contact:
+            return None
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE contact SET photo = ?, photo_type = ? WHERE id = ? AND user_id = ?",
+            (photo_data, photo_type, contact_id, user_id),
+        )
+        self.conn.commit()
+        return self.get_by_id(contact_id, user_id)
 
-        Args:
-            query: Поисковый запрос.
-
-        Returns:
-            Список найденных контактов.
-        """
-        return self.get_all(search=query)
+    def delete_photo(self, contact_id: int, user_id: int) -> Optional[Contact]:
+        """Удалить фото контакта."""
+        contact = self.get_by_id(contact_id, user_id)
+        if not contact:
+            return None
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE contact SET photo = NULL, photo_type = NULL WHERE id = ? AND user_id = ?",
+            (contact_id, user_id),
+        )
+        self.conn.commit()
+        return self.get_by_id(contact_id, user_id)

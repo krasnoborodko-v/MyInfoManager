@@ -1,217 +1,170 @@
 """
-API эндпоинты для управления задачами.
+API эндпоинты для задач.
 """
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from db.connection import get_connection
-from db.models import Task as TaskModel, Subtask as SubtaskModel
+from db.models import Task as TaskModel, Subtask as SubtaskModel, User
 from db.repositories.task_repo import TaskRepository
 from server.schemas import (
     TaskCreate,
     TaskUpdate,
     TaskResponse,
-    KategoryTaskResponse,
     SubtaskCreate,
     SubtaskUpdate,
     SubtaskResponse,
+    KategoryTaskResponse,
 )
-
+from server.auth import get_current_user
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 
 def get_repo():
-    """Получить репозиторий задач."""
     conn = get_connection()
     return TaskRepository(conn)
 
 
-# === Категории задач (должны быть перед /{task_id}) ===
+# === Категории ===
 
 @router.get("/categories", response_model=List[KategoryTaskResponse])
-def get_categories():
-    """Получить список всех категорий задач."""
-    repo = get_repo()
-    return repo.get_categories()
+def get_categories(current_user: User = Depends(get_current_user)):
+    return get_repo().get_categories(user_id=current_user.id)
 
 
-@router.post("/categories", response_model=KategoryTaskResponse)
-def create_category(name: str = Query(..., min_length=1)):
-    """Создать новую категорию задач."""
-    repo = get_repo()
-    return repo.create_category(name)
+@router.post("/categories", response_model=KategoryTaskResponse, status_code=201)
+def create_category(
+    name: str = Query(..., min_length=1),
+    current_user: User = Depends(get_current_user),
+):
+    return get_repo().create_category(name, user_id=current_user.id)
 
 
 @router.delete("/categories/{category_id}")
-def delete_category(category_id: int):
-    """Удалить категорию задач."""
-    repo = get_repo()
-    deleted = repo.delete_category(category_id)
-
+def delete_category(
+    category_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    deleted = get_repo().delete_category(category_id, user_id=current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Категория не найдена")
-
     return {"message": "Категория удалена"}
 
 
 # === Задачи ===
 
 @router.get("", response_model=List[TaskResponse])
-def get_tasks(kategory_id: Optional[int] = Query(None)):
-    """Получить список всех задач, опционально фильтруя по категории."""
-    repo = get_repo()
-    tasks = repo.get_all(kategory_id=kategory_id)
-    return tasks
+def get_tasks(
+    kategory_id: Optional[int] = Query(None),
+    current_user: User = Depends(get_current_user),
+):
+    return get_repo().get_all(user_id=current_user.id, kategory_id=kategory_id)
+
+
+@router.post("", response_model=TaskResponse, status_code=201)
+def create_task(
+    data: TaskCreate,
+    current_user: User = Depends(get_current_user),
+):
+    task = TaskModel(**data.model_dump())
+    return get_repo().create(task, user_id=current_user.id)
 
 
 @router.get("/search", response_model=List[TaskResponse])
-def search_tasks(q: str = Query(..., min_length=1)):
-    """Поиск задач по имени и описанию."""
-    repo = get_repo()
-    tasks = repo.search(q)
-    return tasks
+def search_tasks(
+    q: str = Query(..., min_length=1),
+    current_user: User = Depends(get_current_user),
+):
+    return get_repo().search(user_id=current_user.id, query=q)
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
-def get_task(task_id: int):
-    """Получить задачу по ID."""
-    repo = get_repo()
-    task = repo.get_by_id(task_id)
-
-    if task is None:
+def get_task(
+    task_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    task = get_repo().get_by_id(task_id, user_id=current_user.id)
+    if not task:
         raise HTTPException(status_code=404, detail="Задача не найдена")
-
     return task
 
 
-@router.post("", response_model=TaskResponse)
-def create_task(task: TaskCreate):
-    """Создать новую задачу."""
-    repo = get_repo()
-    model = TaskModel(
-        name=task.name,
-        kategory_id=task.kategory_id,
-        description=task.description,
-        data_time=task.data_time,
-        priority=task.priority,
-        status=task.status,
-    )
-    created = repo.create(model)
-    return created
-
-
 @router.put("/{task_id}", response_model=TaskResponse)
-def update_task(task_id: int, task: TaskUpdate):
-    """Обновить существующую задачу."""
-    repo = get_repo()
-    model = TaskModel(
-        id=task_id,
-        name=task.name,
-        kategory_id=task.kategory_id,
-        description=task.description,
-        data_time=task.data_time,
-        priority=task.priority,
-        status=task.status,
-    )
-    updated = repo.update(model)
-
-    if updated is None:
+def update_task(
+    task_id: int,
+    data: TaskUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    existing = get_repo().get_by_id(task_id, user_id=current_user.id)
+    if not existing:
         raise HTTPException(status_code=404, detail="Задача не найдена")
-
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(existing, field, value)
+    updated = get_repo().update(existing, user_id=current_user.id)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Задача не найдена")
     return updated
 
 
 @router.delete("/{task_id}")
-def delete_task(task_id: int):
-    """Удалить задачу."""
-    repo = get_repo()
-    deleted = repo.delete(task_id)
-
+def delete_task(
+    task_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    deleted = get_repo().delete(task_id, user_id=current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Задача не найдена")
-
     return {"message": "Задача удалена"}
 
 
 # === Подзадачи ===
 
 @router.get("/{task_id}/subtasks", response_model=List[SubtaskResponse])
-def get_subtasks(task_id: int):
-    """Получить все подзадачи для задачи."""
-    repo = get_repo()
-    
-    # Проверяем существование задачи
-    task = repo.get_by_id(task_id)
-    if task is None:
-        raise HTTPException(status_code=404, detail="Задача не найдена")
-    
-    return repo.get_subtasks(task_id)
+def get_subtasks(
+    task_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    return get_repo().get_subtasks(task_id, user_id=current_user.id)
 
 
-@router.post("/{task_id}/subtasks", response_model=SubtaskResponse)
-def create_subtask(task_id: int, subtask: SubtaskCreate):
-    """Создать новую подзадачу."""
-    repo = get_repo()
-
-    # Проверяем существование задачи
-    task = repo.get_by_id(task_id)
-    if task is None:
-        raise HTTPException(status_code=404, detail="Задача не найдена")
-
-    model = SubtaskModel(
-        task_id=task_id,
-        title=subtask.title,
-        description=subtask.description,
-        due_date=subtask.due_date,
-        is_completed=subtask.is_completed,
-    )
-    created = repo.create_subtask(model)
-    return created
+@router.post("/{task_id}/subtasks", response_model=SubtaskResponse, status_code=201)
+def create_subtask(
+    task_id: int,
+    data: SubtaskCreate,
+    current_user: User = Depends(get_current_user),
+):
+    subtask = SubtaskModel(**data.model_dump())
+    return get_repo().create_subtask(task_id, subtask, user_id=current_user.id)
 
 
 @router.put("/{task_id}/subtasks/{subtask_id}", response_model=SubtaskResponse)
-def update_subtask(task_id: int, subtask_id: int, subtask: SubtaskUpdate):
-    """Обновить существующую подзадачу."""
-    repo = get_repo()
-
-    # Проверяем существование задачи
-    task = repo.get_by_id(task_id)
-    if task is None:
-        raise HTTPException(status_code=404, detail="Задача не найдена")
-
-    # Получаем подзадачу
-    existing = repo.get_subtask_by_id(subtask_id)
-    if existing is None:
+def update_subtask(
+    task_id: int,
+    subtask_id: int,
+    data: SubtaskUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    existing_list = get_repo().get_subtasks(task_id, user_id=current_user.id)
+    existing = next((s for s in existing_list if s.id == subtask_id), None)
+    if not existing:
         raise HTTPException(status_code=404, detail="Подзадача не найдена")
-
-    # Обновляем только указанные поля
-    model = SubtaskModel(
-        id=subtask_id,
-        task_id=task_id,
-        title=subtask.title if subtask.title is not None else existing.title,
-        description=subtask.description if subtask.description is not None else existing.description,
-        due_date=subtask.due_date if subtask.due_date is not None else existing.due_date,
-        is_completed=subtask.is_completed if subtask.is_completed is not None else existing.is_completed,
-    )
-    updated = repo.update_subtask(model)
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(existing, field, value)
+    updated = get_repo().update_subtask(task_id, subtask_id, existing, user_id=current_user.id)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Подзадача не найдена")
     return updated
 
 
 @router.delete("/{task_id}/subtasks/{subtask_id}")
-def delete_subtask(task_id: int, subtask_id: int):
-    """Удалить подзадачу."""
-    repo = get_repo()
-    
-    # Проверяем существование задачи
-    task = repo.get_by_id(task_id)
-    if task is None:
-        raise HTTPException(status_code=404, detail="Задача не найдена")
-    
-    deleted = repo.delete_subtask(subtask_id)
-
+def delete_subtask(
+    task_id: int,
+    subtask_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    deleted = get_repo().delete_subtask(task_id, subtask_id, user_id=current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Подзадача не найдена")
-
     return {"message": "Подзадача удалена"}

@@ -1,209 +1,182 @@
 """
-API эндпоинты для управления папками и тегами.
+API эндпоинты для папок и тегов.
 """
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 
 from db.connection import get_connection
-from db.models import Folder, Tag
+from db.models import Folder, Tag, User
 from db.repositories.folder_repo import FolderRepository
 from db.repositories.tag_repo import TagRepository
-
+from server.schemas import (
+    FolderCreate,
+    FolderUpdate,
+    FolderResponse,
+    TagCreate,
+    TagUpdate,
+    TagResponse,
+)
+from server.auth import get_current_user
 
 router = APIRouter(prefix="/api", tags=["folders", "tags"])
 
 
-def get_folder_repo():
-    conn = get_connection()
-    return FolderRepository(conn)
-
-
-def get_tag_repo():
-    conn = get_connection()
-    return TagRepository(conn)
-
-
 # === Папки ===
 
-@router.get("/folders", response_model=None)
+@router.get("/folders", response_model=List[FolderResponse])
 def get_folders(
     category_id: Optional[int] = Query(None),
-    tree: bool = Query(False)
+    tree: bool = Query(False),
+    current_user: User = Depends(get_current_user),
 ):
-    """Получить все папки (плоский список или дерево)."""
-    try:
-        repo = get_folder_repo()
-        
-        if tree:
-            folders = repo.get_tree(category_id)
-        else:
-            folders = repo.get_all(category_id)
-        
-        return [f.to_dict(include_children=tree) for f in folders]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    conn = get_connection()
+    repo = FolderRepository(conn)
+    if tree:
+        return repo.get_tree(user_id=current_user.id, category_id=category_id)
+    return repo.get_all(user_id=current_user.id, category_id=category_id)
 
 
-@router.post("/folders", response_model=dict)
+@router.post("/folders", response_model=FolderResponse, status_code=201)
 def create_folder(
-    name: str = Body(..., embed=True),
-    parent_id: Optional[int] = Body(None, embed=True),
-    note_category_id: int = Body(..., embed=True)
+    data: FolderCreate,
+    current_user: User = Depends(get_current_user),
 ):
-    """Создать папку."""
-    repo = get_folder_repo()
-    
-    # Проверка родительской папки
-    if parent_id:
-        parent = repo.get_by_id(parent_id)
-        if not parent:
-            raise HTTPException(status_code=404, detail="Родительская папка не найдена")
-    
-    folder = Folder(
-        name=name,
-        parent_id=parent_id,
-        note_category_id=note_category_id
-    )
-    
-    created = repo.create(folder)
-    return created.to_dict()
+    conn = get_connection()
+    repo = FolderRepository(conn)
+    folder = Folder(name=data.name, parent_id=data.parent_id, note_category_id=data.note_category_id)
+    return repo.create(folder, user_id=current_user.id)
 
 
-@router.put("/folders/{folder_id}", response_model=dict)
+@router.put("/folders/{folder_id}", response_model=FolderResponse)
 def update_folder(
     folder_id: int,
-    name: str = Body(..., embed=True),
-    parent_id: Optional[int] = Body(None, embed=True),
-    note_category_id: int = Body(..., embed=True)
+    data: FolderUpdate,
+    current_user: User = Depends(get_current_user),
 ):
-    """Обновить папку."""
-    repo = get_folder_repo()
-    
-    # Нельзя сделать папку дочерней самой себя
-    if parent_id == folder_id:
-        raise HTTPException(status_code=400, detail="Папка не может быть дочерней самой себя")
-    
-    folder = Folder(
-        id=folder_id,
-        name=name,
-        parent_id=parent_id,
-        note_category_id=note_category_id
-    )
-    
-    updated = repo.update(folder)
+    conn = get_connection()
+    repo = FolderRepository(conn)
+    existing = repo.get_by_id(folder_id, user_id=current_user.id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Папка не найдена")
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(existing, field, value)
+    updated = repo.update(existing, user_id=current_user.id)
     if not updated:
         raise HTTPException(status_code=404, detail="Папка не найдена")
-    
-    return updated.to_dict()
+    return updated
 
 
 @router.delete("/folders/{folder_id}")
-def delete_folder(folder_id: int):
-    """Удалить папку."""
-    repo = get_folder_repo()
-    deleted = repo.delete(folder_id)
-    
+def delete_folder(
+    folder_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    conn = get_connection()
+    repo = FolderRepository(conn)
+    deleted = repo.delete(folder_id, user_id=current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Папка не найдена")
-    
     return {"message": "Папка удалена"}
 
 
 # === Теги ===
 
-@router.get("/tags", response_model=List[dict])
-def get_tags():
-    """Получить все теги."""
-    repo = get_tag_repo()
-    tags = repo.get_all()
-    return [t.to_dict() for t in tags]
+@router.get("/tags", response_model=List[TagResponse])
+def get_tags(current_user: User = Depends(get_current_user)):
+    conn = get_connection()
+    return TagRepository(conn).get_all(user_id=current_user.id)
 
 
-@router.post("/tags", response_model=dict)
+@router.post("/tags", response_model=TagResponse, status_code=201)
 def create_tag(
-    name: str = Body(..., embed=True),
-    color: str = Body("#008888", embed=True)
+    data: TagCreate,
+    current_user: User = Depends(get_current_user),
 ):
-    """Создать тег."""
-    repo = get_tag_repo()
-    
-    # Проверка на дубликат
-    existing = repo.get_by_name(name)
-    if existing:
-        raise HTTPException(status_code=400, detail="Тег с таким именем уже существует")
-    
-    tag = Tag(name=name, color=color)
-    created = repo.create(tag)
-    return created.to_dict()
+    conn = get_connection()
+    repo = TagRepository(conn)
+    tag = Tag(name=data.name, color=data.color)
+    return repo.create(tag, user_id=current_user.id)
 
 
-@router.put("/tags/{tag_id}", response_model=dict)
+@router.put("/tags/{tag_id}", response_model=TagResponse)
 def update_tag(
     tag_id: int,
-    name: str = Body(..., embed=True),
-    color: str = Body("#008888", embed=True)
+    data: TagUpdate,
+    current_user: User = Depends(get_current_user),
 ):
-    """Обновить тег."""
-    repo = get_tag_repo()
-    
-    tag = Tag(id=tag_id, name=name, color=color)
-    updated = repo.update(tag)
-    
+    conn = get_connection()
+    repo = TagRepository(conn)
+    existing = repo.get_by_id(tag_id, user_id=current_user.id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Тег не найден")
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(existing, field, value)
+    updated = repo.update(existing, user_id=current_user.id)
     if not updated:
         raise HTTPException(status_code=404, detail="Тег не найден")
-    
-    return updated.to_dict()
+    return updated
 
 
 @router.delete("/tags/{tag_id}")
-def delete_tag(tag_id: int):
-    """Удалить тег."""
-    repo = get_tag_repo()
-    deleted = repo.delete(tag_id)
-    
+def delete_tag(
+    tag_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    conn = get_connection()
+    repo = TagRepository(conn)
+    deleted = repo.delete(tag_id, user_id=current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Тег не найден")
-    
-    return {"message": "Тег удален"}
+    return {"message": "Тег удалён"}
 
 
-# === Теги заметок ===
+# === Теги заметки ===
 
-@router.get("/notes/{note_id}/tags", response_model=List[dict])
-def get_note_tags(note_id: int):
-    """Получить теги заметки."""
-    repo = get_tag_repo()
-    tags = repo.get_tags_for_note(note_id)
-    return [t.to_dict() for t in tags]
+@router.get("/notes/{note_id}/tags", response_model=List[TagResponse])
+def get_note_tags(
+    note_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    conn = get_connection()
+    return TagRepository(conn).get_for_note(note_id, user_id=current_user.id)
 
 
-@router.post("/notes/{note_id}/tags", response_model=dict)
-def add_tag_to_note(note_id: int, tag_id: int = Body(..., embed=True)):
-    """Добавить тег к заметке."""
-    repo = get_tag_repo()
-    
-    # Проверка существования
-    if not repo.get_by_id(tag_id):
-        raise HTTPException(status_code=404, detail="Тег не найден")
-    
-    success = repo.add_tag_to_note(note_id, tag_id)
-    
-    return {"note_id": note_id, "tag_id": tag_id, "added": success}
+@router.post("/notes/{note_id}/tags", status_code=201)
+def add_tag_to_note(
+    note_id: int,
+    data: dict,
+    current_user: User = Depends(get_current_user),
+):
+    conn = get_connection()
+    repo = TagRepository(conn)
+    added = repo.add_tag_to_note(note_id, data["tag_id"], user_id=current_user.id)
+    if not added:
+        raise HTTPException(status_code=404, detail="Тег или заметка не найдены")
+    return {"message": "Тег добавлен"}
 
 
 @router.delete("/notes/{note_id}/tags/{tag_id}")
-def remove_tag_from_note(note_id: int, tag_id: int):
-    """Удалить тег из заметки."""
-    repo = get_tag_repo()
-    success = repo.remove_tag_from_note(note_id, tag_id)
-    
-    return {"note_id": note_id, "tag_id": tag_id, "removed": success}
+def remove_tag_from_note(
+    note_id: int,
+    tag_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    conn = get_connection()
+    repo = TagRepository(conn)
+    deleted = repo.remove_tag_from_note(note_id, tag_id, user_id=current_user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Тег не найден в заметке")
+    return {"message": "Тег удалён из заметки"}
 
 
-@router.put("/notes/{note_id}/tags", response_model=dict)
-def set_note_tags(note_id: int, tag_ids: List[int] = Body(..., embed=True)):
-    """Установить все теги для заметки."""
-    repo = get_tag_repo()
-    repo.set_tags_for_note(note_id, tag_ids)
-    return {"note_id": note_id, "tag_ids": tag_ids}
+@router.put("/notes/{note_id}/tags")
+def set_tags_for_note(
+    note_id: int,
+    data: dict,
+    current_user: User = Depends(get_current_user),
+):
+    conn = get_connection()
+    repo = TagRepository(conn)
+    repo.set_tags_for_note(note_id, data.get("tag_ids", []), user_id=current_user.id)
+    return {"message": "Теги установлены"}
