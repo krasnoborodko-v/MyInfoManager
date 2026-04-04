@@ -11,8 +11,8 @@
 services:
   myinfomanager:
     build:
-      context: ..
-      dockerfile: MyInfoManager/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: myinfomanager
     restart: unless-stopped
     ports:
