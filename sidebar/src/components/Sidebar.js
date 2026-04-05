@@ -278,8 +278,10 @@ function ResourcesPanel({ searchQuery, onItemSelect }) {
             onChange={(e) => setNewCategoryName(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
           />
-          <button onClick={handleCreateCategory}>OK</button>
-          <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
+          <div className="form-actions">
+            <button onClick={handleCreateCategory}>OK</button>
+            <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
+          </div>
         </div>
       )}
 
@@ -311,8 +313,10 @@ function ResourcesPanel({ searchQuery, onItemSelect }) {
             value={newResourceData.description}
             onChange={(e) => setNewResourceData({ ...newResourceData, description: e.target.value })}
           />
-          <button onClick={handleCreateResource}>OK</button>
-          <button className="cancel-btn" onClick={() => setShowNewResource(false)}>X</button>
+          <div className="form-actions">
+            <button onClick={handleCreateResource}>OK</button>
+            <button className="cancel-btn" onClick={() => setShowNewResource(false)}>X</button>
+          </div>
         </div>
       )}
 
@@ -573,8 +577,10 @@ function NotesPanel({ searchQuery, onItemSelect }) {
               <option key={f.id} value={f.id}>{f.name}</option>
             ))}
           </select>
-          <button onClick={handleCreateFolder}>OK</button>
-          <button className="cancel-btn" onClick={() => setShowNewFolder(false)}>X</button>
+          <div className="form-actions">
+            <button onClick={handleCreateFolder}>OK</button>
+            <button className="cancel-btn" onClick={() => setShowNewFolder(false)}>X</button>
+          </div>
         </div>
       )}
 
@@ -587,8 +593,10 @@ function NotesPanel({ searchQuery, onItemSelect }) {
             onChange={(e) => setNewCategoryName(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
           />
-          <button onClick={handleCreateCategory}>OK</button>
-          <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
+          <div className="form-actions">
+            <button onClick={handleCreateCategory}>OK</button>
+            <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
+          </div>
         </div>
       )}
 
@@ -625,8 +633,10 @@ function NotesPanel({ searchQuery, onItemSelect }) {
             value={newNoteData.note_text}
             onChange={(e) => setNewNoteData({ ...newNoteData, note_text: e.target.value })}
           />
-          <button onClick={handleCreateNote}>OK</button>
-          <button className="cancel-btn" onClick={() => setShowNewNote(false)}>X</button>
+          <div className="form-actions">
+            <button onClick={handleCreateNote}>OK</button>
+            <button className="cancel-btn" onClick={() => setShowNewNote(false)}>X</button>
+          </div>
         </div>
       )}
 
@@ -885,8 +895,10 @@ function TasksPanel({ searchQuery, onItemSelect }) {
             onChange={(e) => setNewCategoryName(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
           />
-          <button onClick={handleCreateCategory}>OK</button>
-          <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
+          <div className="form-actions">
+            <button onClick={handleCreateCategory}>OK</button>
+            <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
+          </div>
         </div>
       )}
 
@@ -908,8 +920,10 @@ function TasksPanel({ searchQuery, onItemSelect }) {
               <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
-          <button onClick={handleCreateTask}>OK</button>
-          <button className="cancel-btn" onClick={() => setShowNewTask(false)}>X</button>
+          <div className="form-actions">
+            <button onClick={handleCreateTask}>OK</button>
+            <button className="cancel-btn" onClick={() => setShowNewTask(false)}>X</button>
+          </div>
         </div>
       )}
 

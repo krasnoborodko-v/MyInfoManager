@@ -102,6 +102,25 @@ body {
   background: #006666;
 }
 
+/* Кнопки OK и X в одной строке */
+.new-item-form .form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.new-item-form .form-actions .cancel-btn {
+  margin-left: auto;
+  background: #441111;
+  color: #ffaaaa;
+  border: 1px solid #662222;
+  padding: 6px 10px;
+}
+
+.new-item-form .form-actions .cancel-btn:hover {
+  background: #662222;
+}
+
 /* Кнопки действий */
 .panel-actions {
   display: flex;
