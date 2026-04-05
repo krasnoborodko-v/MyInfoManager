@@ -89,19 +89,24 @@ class ContactRepository:
     def get_all(self, user_id: int, group_id: Optional[int] = None, favorite: bool = False, search: Optional[str] = None) -> List[Contact]:
         """Получить все контакты пользователя."""
         cursor = self.conn.cursor()
-        query = "SELECT * FROM contact WHERE user_id = ?"
+        query = """
+            SELECT c.*, g.name as group_name
+            FROM contact c
+            LEFT JOIN contact_group g ON c.group_id = g.id
+            WHERE c.user_id = ?
+        """
         params: list = [user_id]
 
         if group_id is not None:
-            query += " AND group_id = ?"
+            query += " AND c.group_id = ?"
             params.append(group_id)
         if favorite:
-            query += " AND is_favorite = 1"
+            query += " AND c.is_favorite = 1"
         if search:
-            query += " AND (first_name LIKE ? OR last_name LIKE ? OR company LIKE ?)"
+            query += " AND (c.first_name LIKE ? OR c.last_name LIKE ? OR c.company LIKE ?)"
             params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
 
-        query += " ORDER BY last_name, first_name"
+        query += " ORDER BY c.last_name, c.first_name"
         cursor.execute(query, tuple(params))
         return [Contact.from_row(row) for row in cursor.fetchall()]
 
