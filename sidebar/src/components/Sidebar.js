@@ -279,6 +279,7 @@ function ResourcesPanel({ searchQuery, onItemSelect }) {
             onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
           />
           <button onClick={handleCreateCategory}>OK</button>
+          <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
         </div>
       )}
 
@@ -311,6 +312,7 @@ function ResourcesPanel({ searchQuery, onItemSelect }) {
             onChange={(e) => setNewResourceData({ ...newResourceData, description: e.target.value })}
           />
           <button onClick={handleCreateResource}>OK</button>
+          <button className="cancel-btn" onClick={() => setShowNewResource(false)}>X</button>
         </div>
       )}
 
@@ -572,6 +574,7 @@ function NotesPanel({ searchQuery, onItemSelect }) {
             ))}
           </select>
           <button onClick={handleCreateFolder}>OK</button>
+          <button className="cancel-btn" onClick={() => setShowNewFolder(false)}>X</button>
         </div>
       )}
 
@@ -585,6 +588,7 @@ function NotesPanel({ searchQuery, onItemSelect }) {
             onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
           />
           <button onClick={handleCreateCategory}>OK</button>
+          <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
         </div>
       )}
 
@@ -622,6 +626,7 @@ function NotesPanel({ searchQuery, onItemSelect }) {
             onChange={(e) => setNewNoteData({ ...newNoteData, note_text: e.target.value })}
           />
           <button onClick={handleCreateNote}>OK</button>
+          <button className="cancel-btn" onClick={() => setShowNewNote(false)}>X</button>
         </div>
       )}
 
@@ -881,6 +886,7 @@ function TasksPanel({ searchQuery, onItemSelect }) {
             onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
           />
           <button onClick={handleCreateCategory}>OK</button>
+          <button className="cancel-btn" onClick={() => setShowNewCategory(false)}>X</button>
         </div>
       )}
 
@@ -903,6 +909,7 @@ function TasksPanel({ searchQuery, onItemSelect }) {
             ))}
           </select>
           <button onClick={handleCreateTask}>OK</button>
+          <button className="cancel-btn" onClick={() => setShowNewTask(false)}>X</button>
         </div>
       )}
 
