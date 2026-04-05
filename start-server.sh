@@ -23,6 +23,10 @@ echo ""
 # 2. Запускаем инфраструктуру (Nginx + shared PostgreSQL)
 echo "[2/4] Starting infrastructure (Nginx + PostgreSQL)..."
 cd infra
+
+# Убеждаемся что внешняя сеть существует
+docker network create platform-net 2>/dev/null || true
+
 docker compose up -d
 cd ..
 echo ""

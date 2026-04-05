@@ -54,6 +54,7 @@ services:
 networks:
   platform-net:
     driver: bridge
+    name: platform-net
 
 volumes:
   postgres-data:

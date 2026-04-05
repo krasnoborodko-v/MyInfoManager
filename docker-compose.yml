@@ -28,6 +28,7 @@ services:
       - myinfomanager-db
     networks:
       - myinfomanager-net
+      - platform-net
     volumes:
       # Если переключиться на SQLite — том для данных
       # - sqlite-data:/app/data
@@ -54,6 +55,8 @@ services:
 networks:
   myinfomanager-net:
     driver: bridge
+  platform-net:
+    external: true
 
 volumes:
   postgres-data:
