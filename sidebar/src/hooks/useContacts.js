@@ -3,11 +3,9 @@ import { contactsApi } from '../api/client';
 
 /**
  * Хук для работы с контактами.
- * @param {Object} user - объект текущего пользователя (из auth)
  * @returns {Object} - Состояние и методы для работы с контактами
  */
-export function useContacts(user) {
-  const userId = user?.id;
+export function useContacts() {
   const [contacts, setContacts] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,17 +56,19 @@ export function useContacts(user) {
 
   // Создание контакта
   const createContact = useCallback(async (data) => {
-    // Распарсить JSON-строки в массивы, если сервер этого ждёт
+    // Приводим данные к формату, который ждет сервер (строки вместо JSON-строк)
     const cleanData = {};
     for (const [key, value] of Object.entries(data)) {
       if (['phones', 'emails', 'socials'].includes(key) && typeof value === 'string') {
         try {
-          cleanData[key] = JSON.parse(value);
+          const parsed = JSON.parse(value);
+          // Сервер ждет строку, но если это массив объектов, превратим в строку
+          cleanData[key] = Array.isArray(parsed) 
+            ? parsed.map(p => typeof p === 'object' ? (p.value || p.phone || p.email || '') : p).join(', ')
+            : value;
         } catch {
           cleanData[key] = value;
         }
-      } else if (key === 'birth_date' && value && typeof value === 'string') {
-        cleanData[key] = value.split('T')[0]; // YYYY-MM-DD
       } else {
         cleanData[key] = value;
       }
@@ -82,17 +82,17 @@ export function useContacts(user) {
 
   // Обновление контакта
   const updateContact = useCallback(async (id, data) => {
-    // Тоже чистим данные при обновлении
     const cleanData = {};
     for (const [key, value] of Object.entries(data)) {
       if (['phones', 'emails', 'socials'].includes(key) && typeof value === 'string') {
         try {
-          cleanData[key] = JSON.parse(value);
+          const parsed = JSON.parse(value);
+          cleanData[key] = Array.isArray(parsed) 
+            ? parsed.map(p => typeof p === 'object' ? (p.value || p.phone || p.email || '') : p).join(', ')
+            : value;
         } catch {
           cleanData[key] = value;
         }
-      } else if (key === 'birth_date' && value && typeof value === 'string') {
-        cleanData[key] = value.split('T')[0]; // YYYY-MM-DD
       } else {
         cleanData[key] = value;
       }

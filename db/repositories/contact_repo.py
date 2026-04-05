@@ -113,7 +113,12 @@ class ContactRepository:
     def get_by_id(self, contact_id: int, user_id: int) -> Optional[Contact]:
         """Получить контакт по ID."""
         cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM contact WHERE id = ? AND user_id = ?", (contact_id, user_id))
+        cursor.execute("""
+            SELECT c.*, g.name as group_name
+            FROM contact c
+            LEFT JOIN contact_group g ON c.group_id = g.id
+            WHERE c.id = ? AND c.user_id = ?
+        """, (contact_id, user_id))
         row = cursor.fetchone()
         return Contact.from_row(row) if row else None
 
