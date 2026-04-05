@@ -58,15 +58,46 @@ export function useContacts(user) {
 
   // Создание контакта
   const createContact = useCallback(async (data) => {
-    const contactData = { ...data, user_id: userId };
-    const created = await contactsApi.create(contactData);
+    // Распарсить JSON-строки в массивы, если сервер этого ждёт
+    const cleanData = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (['phones', 'emails', 'socials'].includes(key) && typeof value === 'string') {
+        try {
+          cleanData[key] = JSON.parse(value);
+        } catch {
+          cleanData[key] = value;
+        }
+      } else if (key === 'birth_date' && value && typeof value === 'string') {
+        cleanData[key] = value.split('T')[0]; // YYYY-MM-DD
+      } else {
+        cleanData[key] = value;
+      }
+    }
+    cleanData.user_id = userId;
+
+    const created = await contactsApi.create(cleanData);
     setContacts(prev => [...prev, created]);
     return created;
   }, [userId]);
 
   // Обновление контакта
   const updateContact = useCallback(async (id, data) => {
-    const updated = await contactsApi.update(id, data);
+    // Тоже чистим данные при обновлении
+    const cleanData = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (['phones', 'emails', 'socials'].includes(key) && typeof value === 'string') {
+        try {
+          cleanData[key] = JSON.parse(value);
+        } catch {
+          cleanData[key] = value;
+        }
+      } else if (key === 'birth_date' && value && typeof value === 'string') {
+        cleanData[key] = value.split('T')[0]; // YYYY-MM-DD
+      } else {
+        cleanData[key] = value;
+      }
+    }
+    const updated = await contactsApi.update(id, cleanData);
     setContacts(prev => prev.map(c => c.id === id ? updated : c));
     return updated;
   }, []);
