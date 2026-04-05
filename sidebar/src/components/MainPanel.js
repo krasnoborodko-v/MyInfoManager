@@ -44,7 +44,7 @@ const sectionConfig = {
   settings: { icon: Settings, title: 'Настройки', description: 'Настройки приложения' },
 };
 
-function MainPanel({ activeSection, selectedItemId, onItemSelect }) {
+function MainPanel({ activeSection, selectedItemId, onItemSelect, user }) {
   const config = sectionConfig[activeSection];
   const Icon = config?.icon;
   
