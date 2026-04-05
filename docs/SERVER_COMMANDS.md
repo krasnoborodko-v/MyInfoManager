@@ -15,6 +15,7 @@ ssh valery@192.168.1.110
 СТАРТ после загрузки
 
 ```bash
+chmod +x ~/MyInfoManager/start-server.sh
 cd ~/MyInfoManager
 ./start-server.sh
 ```

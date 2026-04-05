@@ -35,7 +35,7 @@ const sectionConfig = {
 /**
  * Компонент раздела "Контакты".
  */
-export function ContactPanel({ onItemSelect }) {
+export function ContactPanel({ onItemSelect, user }) {
   const {
     contacts,
     groups,
@@ -53,7 +53,7 @@ export function ContactPanel({ onItemSelect }) {
     deleteGroup,
     uploadPhoto,
     deletePhoto
-  } = useContacts();
+  } = useContacts(user);
 
   const [selectedContact, setSelectedContact] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');

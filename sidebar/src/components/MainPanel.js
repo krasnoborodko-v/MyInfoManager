@@ -77,12 +77,12 @@ function MainPanel({ activeSection, selectedItemId, onItemSelect }) {
               <TaskDetail id={selectedId} onClose={() => onItemSelect(null)} />
             )}
             {selectedType === 'contact' && (
-              <ContactDetailWrapper id={selectedId} onClose={() => onItemSelect(null)} />
+              <ContactDetailWrapper id={selectedId} onClose={() => onItemSelect(null)} user={user} />
             )}
           </div>
         ) : (
           activeSection === 'contacts' ? (
-            <ContactPanel onItemSelect={onItemSelect} />
+            <ContactPanel onItemSelect={onItemSelect} user={user} />
           ) : (
             <div className="placeholder-content">
               <div className="placeholder-box">

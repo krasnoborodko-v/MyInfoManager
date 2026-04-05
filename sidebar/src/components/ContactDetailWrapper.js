@@ -9,8 +9,8 @@ import { useContacts } from '../hooks';
 /**
  * Полнофункциональная форма деталей контакта.
  */
-export function ContactDetailWrapper({ id, onClose }) {
-  const { groups, updateContact, deleteContact, uploadPhoto, deletePhoto, getContactById } = useContacts();
+export function ContactDetailWrapper({ id, onClose, user }) {
+  const { groups, updateContact, deleteContact, uploadPhoto, deletePhoto, getContactById } = useContacts(user);
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);

@@ -3,9 +3,11 @@ import { contactsApi } from '../api/client';
 
 /**
  * Хук для работы с контактами.
+ * @param {Object} user - объект текущего пользователя (из auth)
  * @returns {Object} - Состояние и методы для работы с контактами
  */
-export function useContacts() {
+export function useContacts(user) {
+  const userId = user?.id;
   const [contacts, setContacts] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,10 +58,11 @@ export function useContacts() {
 
   // Создание контакта
   const createContact = useCallback(async (data) => {
-    const created = await contactsApi.create(data);
+    const contactData = { ...data, user_id: userId };
+    const created = await contactsApi.create(contactData);
     setContacts(prev => [...prev, created]);
     return created;
-  }, []);
+  }, [userId]);
 
   // Обновление контакта
   const updateContact = useCallback(async (id, data) => {

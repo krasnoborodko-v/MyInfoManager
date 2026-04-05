@@ -110,7 +110,7 @@ function Sidebar({ activeSection, onSectionChange, onItemSelect, user, onLogout 
               <TasksPanel searchQuery={searchQuery} onItemSelect={onItemSelect} />
             )}
             {expandedPanel === 'contacts' && (
-              <ContactsPanel searchQuery={searchQuery} onItemSelect={onItemSelect} />
+              <ContactsPanel searchQuery={searchQuery} onItemSelect={onItemSelect} user={user} />
             )}
             {expandedPanel === 'calendar' && <CalendarPanel />}
             {expandedPanel === 'planner' && <PlannerPanel />}
@@ -1023,8 +1023,8 @@ function TasksPanel({ searchQuery, onItemSelect }) {
   );
 }
 
-function ContactsPanel({ searchQuery, onItemSelect }) {
-  const { contacts, groups, loading } = useContacts();
+function ContactsPanel({ searchQuery, onItemSelect, user }) {
+  const { contacts, groups, loading } = useContacts(user);
 
   const filteredContacts = contacts.filter(contact => {
     if (!searchQuery) return true;
